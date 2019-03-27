@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <payment>
+            <picpay_standard>
+                <active>0</active>
+                <model>picpay_payment/standard</model>
+                <title>Picpay</title>
+                <mode>2</mode>
+                <allowspecific>0</allowspecific>
+                <notification>1</notification>
+                <use_custom_form>0</use_custom_form>
+                <order_status>pending</order_status>
+                <customer_cpf_attribute>customer|taxvat</customer_cpf_attribute>
+                <address_telephone_attribute>telephone</address_telephone_attribute>
+                <api_url>https://appws.picpay.com/ecommerce/public</api_url>
+                <iframe_width>500</iframe_width>
+                <iframe_height>700</iframe_height>
+            </picpay_standard>
+        </payment>
+    </default>
+</config>

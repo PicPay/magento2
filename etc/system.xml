@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <sections>
+        <payment>
+            <groups>
+                <picpay_standard translate="label">
+                    <label>PicPay</label>
+                    <frontend_type>text</frontend_type>
+                    <sort_order>400</sort_order>
+                    <show_in_default>1</show_in_default>
+                    <show_in_website>1</show_in_website>
+                    <show_in_store>1</show_in_store>
+                    <fields>
+                        <active translate="label">
+                            <label>Enable</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>10</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </active>
+
+                        <title translate="label">
+                            <label>Title</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>20</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </title>
+
+                        <mode translate="label">
+                            <label>Checkout Mode</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>picpay_payment/source_mode</source_model>
+                            <sort_order>30</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </mode>
+
+                        <iframe_width translate="label comment">
+                            <label>Iframe width on iframe Mode</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>32</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <mode>2</mode>
+                            </depends>
+                            <comment>In pixels. Just numbers.</comment>
+                        </iframe_width>
+
+                        <iframe_height translate="label comment">
+                            <label>Iframe height on iframe Mode</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>33</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <mode>2</mode>
+                            </depends>
+                            <comment>In pixels. Just numbers.</comment>
+                        </iframe_height>
+
+                        <iframe_message translate="label">
+                                <label>Iframe callback message after paid</label>
+                            <frontend_type>textarea</frontend_type>
+                            <sort_order>34</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <mode>2</mode>
+                            </depends>
+                            <comment>Accept html. The extension has a default message on checkout.</comment>
+                        </iframe_message>
+
+                        <onpage_width translate="label comment">
+                            <label>Qrcode width on Onpage Mode</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>35</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <mode>1</mode>
+                            </depends>
+                            <comment>In pixels. Just numbers.</comment>
+                        </onpage_width>
+
+                        <onpage_message translate="label">
+                            <label>Message to show with qrcode on success page</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>36</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <mode>1</mode>
+                            </depends>
+                        </onpage_message>
+
+                        <qrcode_info_width translate="label comment">
+                            <label>Qrcode width on info payments</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>38</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <comment>In pixels. Just numbers.</comment>
+                        </qrcode_info_width>
+
+                        <token translate="label">
+                            <label>API Picpay Token</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </token>
+
+                        <seller_token translate="label">
+                            <label>API Seller Token</label>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>40</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </seller_token>
+
+                        <order_status translate="label comment">
+                            <label>Order status: order creation</label>
+                            <comment>
+                                Status given to newly created orders before payment result confirmation via server notifications.
+                            </comment>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_order_status_new</source_model>
+                            <sort_order>60</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </order_status>
+
+                        <use_custom_form translate="label comment">
+                            <label>Use custom form</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>80</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>Enable with want build a custom HTML form in Checkout</comment>
+                        </use_custom_form>
+
+                        <custom_form_html translate="label">
+                            <label>Custom html form</label>
+                            <frontend_type>textarea</frontend_type>
+                            <sort_order>90</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <use_custom_form>1</use_custom_form>
+                            </depends>
+                        </custom_form_html>
+												
+                        <customer_cpf_attribute>
+                            <label>Customer document attribute</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>picpay_payment/source_customer_taxvat</source_model>
+                            <sort_order>100</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>If your store use a customer ID custom ttribute, select here.</comment>
+                        </customer_cpf_attribute>
+
+                        <address_telephone_attribute>
+                            <label>Customer telephone attribute</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>picpay_payment/source_customer_address</source_model>
+                            <sort_order>110</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <comment>If your store use a custom telephone attribute, select here.</comment>
+                        </address_telephone_attribute>
+
+                        <notification translate="label">
+                            <label>Enable status order notification</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>190</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </notification>
+
+                        <allowspecific translate="label">
+                            <label>Payment from applicable countries</label>
+                            <frontend_type>allowspecific</frontend_type>
+                            <sort_order>150</sort_order>
+                            <source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </allowspecific>
+
+                        <specificcountry translate="label">
+                            <label>Payment from specific countries</label>
+                            <frontend_type>multiselect</frontend_type>
+                            <sort_order>160</sort_order>
+                            <source_model>adminhtml/system_config_source_country</source_model>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                            <depends>
+                                <allowspecific>1</allowspecific>
+                            </depends>
+                            <can_be_empty>1</can_be_empty>
+                        </specificcountry>
+
+                        <debug translate="label">
+                            <label>Enable debug logging</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>180</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </debug>
+
+                        <sort_order translate="label comment">
+                            <label>Sort Order</label>
+                            <comment>Set the sequence number of this payment method in the checkout. Payment methods with a higher sort order number will be displayed lower in the list.</comment>
+                            <frontend_type>text</frontend_type>
+                            <sort_order>200</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>1</show_in_store>
+                        </sort_order>
+                    </fields>
+                </picpay_standard>
+            </groups>
+        </payment>
+    </sections>
+</config>

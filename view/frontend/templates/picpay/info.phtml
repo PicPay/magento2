@@ -1,0 +1,21 @@
+<p><?php echo $this->__("Picpay Payment") ?></p>
+
+<?php if($this->getPaymentUrl()): ?>
+    <p>
+        <a href="<?php echo $this->getPaymentUrl(); ?>">
+            <?php echo $this->getQrcode() ?>
+        </a>
+    </p>
+    <p>
+        <a href="<?php echo $this->getPaymentUrl(); ?>"><?php echo $this->__("Payment Link") ?></a>
+    </p>
+<?php endif; ?>
+
+<?php if($this->getAuthorizationId()): ?>
+    <p><?php echo $this->__("Authorization Id"); ?>: <?php echo $this->getAuthorizationId() ?></p>
+<?php endif; ?>
+
+<?php if($this->getCancellationId()): ?>
+    <p><?php echo $this->__("Cancellation Id"); ?>: <?php echo $this->getCancellationId() ?></p>
+<?php endif; ?>
+

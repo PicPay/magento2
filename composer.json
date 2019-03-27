@@ -1,0 +1,20 @@
+{
+  "name": "picpay/magento2",
+  "description": "Magento extension for PicPay payments integration",
+  "type": "magento2-module"
+  "homepage": "https://github.com/PicPay/magento2",
+  "repositories": [
+    {
+      "type": "composer"  
+      "url": "https://repo.magento.com/"
+    }
+  ],
+  "require": {
+    "magento/framework": ">=101.0.0"    
+  }
+  "autoload": {
+    "files": [
+      "registration.php"
+    ]
+  }
+}

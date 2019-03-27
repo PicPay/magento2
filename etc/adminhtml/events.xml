@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="core_block_abstract_prepare_layout_before">
+        <observer name="picpay_payment_core_block_abstract_prepare_layout_before" instance="Picpay\Payment\Observer\addOrderButtonsAction"/>
+    </event>
+</config>

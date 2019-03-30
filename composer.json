@@ -5,13 +5,13 @@
   "homepage": "https://github.com/PicPay/magento2",
   "repositories": [
     {
-      "type": "composer"  
+      "type": "composer",
       "url": "https://repo.magento.com/"
     }
   ],
   "require": {
     "magento/framework": ">=101.0.0"    
-  }
+  },
   "autoload": {
     "files": [
       "registration.php"

@@ -6,7 +6,4 @@
     <event name="order_cancel_after">
         <observer name="picpay_payment_order_cancel_after" instance="Picpay\Payment\Observer\cancelTransaction"/>
     </event>
-    <event name="controller_front_init_before">
-        <observer name="picpay_payment_controller_front_init_before" instance="Picpay\Payment\Observer\controllerFrontInitBefore"/>
-    </event>
 </config>

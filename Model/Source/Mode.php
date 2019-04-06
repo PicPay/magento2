@@ -2,28 +2,33 @@
 
 namespace Picpay\Payment\Model\Source;
 
-class Mode
+class Mode implements \Magento\Framework\Option\ArrayInterface
 {
     /**
      * @var \Picpay\Payment\Helper\Data
      */
-    protected $paymentHelper;
+    protected $_paymentHelper;
 
+    /**
+     * Mode constructor.
+     *
+     * @param \Picpay\Payment\Helper\Data $paymentHelper
+     */
     public function __construct(
         \Picpay\Payment\Helper\Data $paymentHelper
     ) {
-        $this->paymentHelper = $paymentHelper;
+        $this->_paymentHelper = $paymentHelper;
     }
     
     public function toOptionArray()
     {
         /** @var \Picpay\Payment\Helper\Data $picpayHelper */
-        $picpayHelper = $this->paymentHelper;
+        $picpayHelper = $this->_paymentHelper;
 
-        return array(
-            array('value' => $picpayHelper::ONPAGE_MODE, 'label' => 'On Page'),
-            array('value' => $picpayHelper::IFRAME_MODE, 'label' => 'Iframe'),
-            array('value' => $picpayHelper::REDIRECT_MODE, 'label' => 'Redirect')
-        );
+        return [
+            ['value' => $picpayHelper::ONPAGE_MODE, 'label' => 'On Page'],
+            ['value' => $picpayHelper::IFRAME_MODE, 'label' => 'Iframe'],
+            ['value' => $picpayHelper::REDIRECT_MODE, 'label' => 'Redirect']
+        ];
     }
 }

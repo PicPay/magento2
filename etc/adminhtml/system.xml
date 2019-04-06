@@ -1,111 +1,113 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
-    <section id="payment">
-        <group id="picpay_standard" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
-            <label>PicPay</label>
-            <field id="active" translate="label">
-                <label>Enable</label>
-                <source_model>adminhtml/system_config_source_yesno</source_model>
-            </field>
-            <field id="title" translate="label">
-                <label>Title</label>
-            </field>
-            <field id="mode" translate="label">
-                <label>Checkout Mode</label>
-                <source_model>picpay_payment/source_mode</source_model>
-            </field>
-            <field id="iframe_width" translate="label comment">
-                <label>Iframe width on iframe Mode</label>
-                <depends>
-                    <mode>2</mode>
-                </depends>
-                <comment>In pixels. Just numbers.</comment>
-            </field>
-            <field id="iframe_height" translate="label comment">
-                <label>Iframe height on iframe Mode</label>
-                <depends>
-                    <mode>2</mode>
-                </depends>
-                <comment>In pixels. Just numbers.</comment>
-            </field>
-            <field id="iframe_message" translate="label">
-                <label>Iframe callback message after paid</label>
-                <depends>
-                    <mode>2</mode>
-                </depends>
-                <comment>Accept html. The extension has a default message on checkout.</comment>
-            </field>
-            <field id="onpage_width" translate="label comment">
-                <label>Qrcode width on Onpage Mode</label>
-                <depends>
-                    <mode>1</mode>
-                </depends>
-                <comment>In pixels. Just numbers.</comment>
-            </field>
-            <field id="onpage_message" translate="label">
-                <label>Message to show with qrcode on success page</label>
-                <depends>
-                    <mode>1</mode>
-                </depends>
-            </field>
-            <field id="qrcode_info_width" translate="label comment">
-                <label>Qrcode width on info payments</label>
-                <comment>In pixels. Just numbers.</comment>
-            </field>
-            <field id="token" translate="label">
-                <label>API Picpay Token</label>
-            </field>
-            <field id="seller_token" translate="label">
-                <label>API Seller Token</label>
-            </field>
-            <field id="order_status" translate="label comment">
-                <label>Order status: order creation</label>
-                <comment>
-                                Status given to newly created orders before payment result confirmation via server notifications.
-                            </comment>
-                <source_model>adminhtml/system_config_source_order_status_new</source_model>
-            </field>
-            <field id="use_custom_form" translate="label comment">
-                <label>Use custom form</label>
-                <source_model>adminhtml/system_config_source_yesno</source_model>
-                <comment>Enable with want build a custom HTML form in Checkout</comment>
-            </field>
-            <field id="custom_form_html" translate="label">
-                <label>Custom html form</label>
-                <depends>
-                    <use_custom_form>1</use_custom_form>
-                </depends>
-            </field>
-            <field id="customer_cpf_attribute">
-                <label>Customer document attribute</label>
-                <source_model>picpay_payment/source_customer_taxvat</source_model>
-                <comment>If your store use a customer ID custom ttribute, select here.</comment>
-            </field>
-            <field id="address_telephone_attribute">
-                <label>Customer telephone attribute</label>
-                <source_model>picpay_payment/source_customer_address</source_model>
-                <comment>If your store use a custom telephone attribute, select here.</comment>
-            </field>
-            <field id="notification" translate="label">
-                <label>Enable status order notification</label>
-                <source_model>adminhtml/system_config_source_yesno</source_model>
-            </field>
-            <field id="allowspecific" translate="label">
-                <label>Payment from applicable countries</label>
-                <source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>
-            </field>
-            <field id="specificcountry" translate="label">
-                <label>Payment from specific countries</label>
-                <source_model>adminhtml/system_config_source_country</source_model>
-                <depends>
-                    <allowspecific>1</allowspecific>
-                </depends>
-                <can_be_empty>1</can_be_empty>
-            </field>
-            <field id="debug" translate="label">
-                <label>Enable debug logging</label>
-                <source_model>adminhtml/system_config_source_yesno</source_model>
-            </field>
-        </group>
-    </section>
+    <system>
+        <section id="payment">
+            <group id="picpay_standard" type="text" sortOrder="400" showInDefault="1" showInWebsite="1" showInStore="1" translate="label">
+                <label>PicPay</label>
+                <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Enable</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                </field>
+                <field id="title" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Title</label>
+                </field>
+                <field id="mode" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Checkout Mode</label>
+                    <source_model>\Picpay\Payment\Model\Source\Mode</source_model>
+                </field>
+                <field id="iframe_width" translate="label comment" type="text" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Iframe width on iframe Mode</label>
+                    <depends>
+                        <mode>2</mode>
+                    </depends>
+                    <comment>In pixels. Just numbers.</comment>
+                </field>
+                <field id="iframe_height" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Iframe height on iframe Mode</label>
+                    <depends>
+                        <mode>2</mode>
+                    </depends>
+                    <comment>In pixels. Just numbers.</comment>
+                </field>
+                <field id="iframe_message" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Iframe callback message after paid</label>
+                    <depends>
+                        <mode>2</mode>
+                    </depends>
+                    <comment>Accept html. The extension has a default message on checkout.</comment>
+                </field>
+                <!--<field id="onpage_width" translate="label comment">-->
+                    <!--<label>Qrcode width on Onpage Mode</label>-->
+                    <!--<depends>-->
+                        <!--<mode>1</mode>-->
+                    <!--</depends>-->
+                    <!--<comment>In pixels. Just numbers.</comment>-->
+                <!--</field>-->
+                <!--<field id="onpage_message" translate="label">-->
+                    <!--<label>Message to show with qrcode on success page</label>-->
+                    <!--<depends>-->
+                        <!--<mode>1</mode>-->
+                    <!--</depends>-->
+                <!--</field>-->
+                <!--<field id="qrcode_info_width" translate="label comment">-->
+                    <!--<label>Qrcode width on info payments</label>-->
+                    <!--<comment>In pixels. Just numbers.</comment>-->
+                <!--</field>-->
+                <!--<field id="token" translate="label">-->
+                    <!--<label>API Picpay Token</label>-->
+                <!--</field>-->
+                <!--<field id="seller_token" translate="label">-->
+                    <!--<label>API Seller Token</label>-->
+                <!--</field>-->
+                <!--<field id="order_status" translate="label comment">-->
+                    <!--<label>Order status: order creation</label>-->
+                    <!--<comment>-->
+                        <!--Status given to newly created orders before payment result confirmation via server notifications.-->
+                    <!--</comment>-->
+                    <!--<source_model>adminhtml/system_config_source_order_status_new</source_model>-->
+                <!--</field>-->
+                <field id="use_custom_form" translate="label comment">
+                    <label>Use custom form</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Enable with want build a custom HTML form in Checkout</comment>
+                </field>
+                <!--<field id="custom_form_html" translate="label">-->
+                    <!--<label>Custom html form</label>-->
+                    <!--<depends>-->
+                        <!--<use_custom_form>1</use_custom_form>-->
+                    <!--</depends>-->
+                <!--</field>-->
+                <!--<field id="customer_cpf_attribute">-->
+                    <!--<label>Customer document attribute</label>-->
+                    <!--<source_model>picpay_payment/source_customer_taxvat</source_model>-->
+                    <!--<comment>If your store use a customer ID custom ttribute, select here.</comment>-->
+                <!--</field>-->
+                <!--<field id="address_telephone_attribute">-->
+                    <!--<label>Customer telephone attribute</label>-->
+                    <!--<source_model>picpay_payment/source_customer_address</source_model>-->
+                    <!--<comment>If your store use a custom telephone attribute, select here.</comment>-->
+                <!--</field>-->
+                <!--<field id="notification" translate="label">-->
+                    <!--<label>Enable status order notification</label>-->
+                    <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+                <!--</field>-->
+                <!--<field id="allowspecific" translate="label">-->
+                    <!--<label>Payment from applicable countries</label>-->
+                    <!--<source_model>adminhtml/system_config_source_payment_allspecificcountries</source_model>-->
+                <!--</field>-->
+                <!--<field id="specificcountry" translate="label">-->
+                    <!--<label>Payment from specific countries</label>-->
+                    <!--<source_model>adminhtml/system_config_source_country</source_model>-->
+                    <!--<depends>-->
+                        <!--<allowspecific>1</allowspecific>-->
+                    <!--</depends>-->
+                    <!--<can_be_empty>1</can_be_empty>-->
+                <!--</field>-->
+                <!--<field id="debug" translate="label">-->
+                    <!--<label>Enable debug logging</label>-->
+                    <!--<source_model>Magento\Config\Model\Config\Source\Yesno</source_model>-->
+                <!--</field>-->
+            </group>
+        </section>
+    </system>
 </config>

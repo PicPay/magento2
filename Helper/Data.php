@@ -1,7 +1,10 @@
 <?php
+
 namespace Picpay\Payment\Helper;
 
-class Data extends \Magento\Framework\App\Helper\AbstractHelper
+use Magento\Framework\App\Helper\AbstractHelper;
+
+class Data extends AbstractHelper
 {
     const ONPAGE_MODE   = 1;
     const IFRAME_MODE   = 2;
@@ -78,6 +81,8 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         \Magento\Sales\Model\Order\StatusFactory $salesOrderStatusFactory
     )
     {
+        parent::__construct($context);
+
         $this->storeManager = $storeManager;
         $this->scopeConfig = $scopeConfig;
         $this->eavConfigFactory = $eavConfigFactory;
@@ -86,13 +91,18 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
         $this->backendSession = $backendSession;
         $this->transactionFactory = $transactionFactory;
         $this->salesOrderStatusFactory = $salesOrderStatusFactory;
-        parent::__construct(
-            $context
-        );
 
         if(is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
         }
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEnabled()
+    {
+        return true;
     }
 
     /**
@@ -655,8 +665,9 @@ class Data extends \Magento\Framework\App\Helper\AbstractHelper
 
     public function generateQrCode($dataText, $imageWidth = 200)
     {
-        $svgTagId   = 'picpay-qrcode';
-        $saveToFile = false;
-        return QRcode::svg($dataText, $svgTagId, $saveToFile, QR_ECLEVEL_L, $imageWidth);
+        return null;
+//        $svgTagId   = 'picpay-qrcode';
+//        $saveToFile = false;
+//        return QRcode::svg($dataText, $svgTagId, $saveToFile, QR_ECLEVEL_L, $imageWidth);
     }
 }

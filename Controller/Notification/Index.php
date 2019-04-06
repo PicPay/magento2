@@ -153,11 +153,8 @@ class Index extends \Magento\Framework\App\Action\Action
 
     /**
      * Action to handling notifications from PicPay
-     *
-     * @throws \Zend_Controller_Request_Exception
-     * @throws \Zend_Json_Exception
      */
-    public function indexAction()
+    public function execute()
     {
         $request = $this->_normalizeParams($this->getRequest());
 

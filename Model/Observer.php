@@ -6,11 +6,6 @@ class Observer extends \Magento\Framework\Event\Observer
 {
 
     /**
-     * @var \Picpay\Payment\Helper\Autoloader
-     */
-    protected $paymentAutoloaderHelper;
-
-    /**
      * @var \Magento\Framework\Session\Generic
      */
     protected $generic;
@@ -46,7 +41,6 @@ class Observer extends \Magento\Framework\Event\Observer
     protected $layout;
 
     public function __construct(
-        \Picpay\Payment\Helper\Autoloader $paymentAutoloaderHelper,
         \Magento\Framework\Session\Generic $generic,
         \Psr\Log\LoggerInterface $logger,
         \Picpay\Payment\Helper\Data $paymentHelper,
@@ -56,7 +50,6 @@ class Observer extends \Magento\Framework\Event\Observer
         \Magento\Framework\View\LayoutInterface $layout,
         array $data = []
     ) {
-        $this->paymentAutoloaderHelper = $paymentAutoloaderHelper;
         $this->generic = $generic;
         $this->logger = $logger;
         $this->paymentHelper = $paymentHelper;
@@ -67,19 +60,6 @@ class Observer extends \Magento\Framework\Event\Observer
         parent::__construct(
             $data
         );
-    }
-
-    /**
-     * This is an observer function for the event 'controller_front_init_before'.
-     * It prepends our autoloader, so we can load the extra libraries.
-     *
-     * @param \Magento\Framework\Event\Observer $observer
-     */
-    public function controllerFrontInitBefore(/** @noinspection PhpUnusedParameterInspection */ $observer)
-    {
-        /** @var JeroenVermeulen_Solarium_Helper_Autoloader $autoLoader */
-        $autoLoader = $this->paymentAutoloaderHelper;
-        $autoLoader->register();
     }
 
     /**
@@ -130,6 +110,7 @@ class Observer extends \Magento\Framework\Event\Observer
      */
     public function cancelTransaction($observer)
     {
+        return $this;
         /** @var \Picpay\Payment\Helper\Data $helper */
         $helper = $this->paymentHelper;
 
@@ -159,6 +140,7 @@ class Observer extends \Magento\Framework\Event\Observer
      */
     public function refundTransaction($observer)
     {
+        return $this;
         /** @var \Picpay\Payment\Helper\Data $helper */
         $helper = $this->paymentHelper;
 
@@ -189,6 +171,7 @@ class Observer extends \Magento\Framework\Event\Observer
      */
     public function addOrderButtonsAction($observer)
     {
+        return $this;
         /** @var \Picpay\Payment\Helper\Data $helper */
         $helper = $this->paymentHelper;
 
@@ -222,6 +205,7 @@ class Observer extends \Magento\Framework\Event\Observer
      */
     public function addPicpayQrcodeBlock($observer)
     {
+        return $this;
         /** @var \Picpay\Payment\Helper\Data $helper */
         $helper = $this->paymentHelper;
 

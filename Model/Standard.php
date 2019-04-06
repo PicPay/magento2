@@ -16,13 +16,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_canUseCheckout = true;
     protected $_canRefundInvoicePartial = false;
 
-    /** @var \Picpay\Payment\Helper\Data $_helperPicpay */
-    protected $_helperPicpay = null;
-
     /**
      * @var \Picpay\Payment\Helper\Data
      */
-    protected $paymentHelper;
+    protected $picpayHelper;
 
     /**
      * @var \Magento\Store\Model\StoreManagerInterface
@@ -44,19 +41,39 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     protected $dataObjectFactory;
 
-    public function __construct(
-        \Picpay\Payment\Helper\Data $paymentHelper,
+    public function __construct(\Magento\Framework\Model\Context $context,
+        \Magento\Framework\Registry $registry,
+        \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
+        \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
+        \Magento\Payment\Helper\Data $paymentData,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Magento\Payment\Model\Method\Logger $logger,
+        \Magento\Framework\Module\ModuleListInterface $moduleList,
+        \Magento\Framework\Stdlib\DateTime\TimezoneInterface $localeDate,
+        \Magento\Directory\Model\CountryFactory $countryFactory,
+        \Picpay\Payment\Helper\Data $picpayHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Session\Generic $generic,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Framework\DataObjectFactory $dataObjectFactory
+//        \Psr\Log\LoggerInterface $logger,
+        \Magento\Framework\DataObjectFactory $dataObjectFactory,
+        array $data = array()
     ) {
+        parent::__construct(
+            $context, $registry, $extensionFactory, $customAttributeFactory,
+            $paymentData, $scopeConfig, $logger, $moduleList, $localeDate, null,
+            null, $data
+        );
+        $this->_countryFactory = $countryFactory;
+        $this->_minAmount = $this->getConfigData('min_order_total');
+        $this->_maxAmount = $this->getConfigData('max_order_total');
+
         $this->dataObjectFactory = $dataObjectFactory;
-        $this->paymentHelper = $paymentHelper;
+        $this->picpayHelper = $picpayHelper;
         $this->storeManager = $storeManager;
         $this->generic = $generic;
         $this->logger = $logger;
     }
+
     public function getConfigPaymentAction()
     {
         return \Magento\Payment\Model\Method\AbstractMethod::ACTION_ORDER;
@@ -69,10 +86,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function _getHelper()
     {
-        if(is_null($this->_helperPicpay)) {
-            $this->_helperPicpay = $this->paymentHelper;
-        }
-        return $this->_helperPicpay;
+        return $this->picpayHelper;
     }
 
     /**
@@ -82,7 +96,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @return mixed
      */
-    public function isAvailable($quote = null)
+    public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
         return parent::isAvailable($quote) && !empty($quote)
             && $this->storeManager->getStore()->roundPrice($quote->getGrandTotal()) > 0;
@@ -95,8 +109,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      * @return \Picpay\Payment\Model\Standard
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function assignData($data)
+    public function assignData(\Magento\Framework\DataObject $data)
     {
+        parent::assignData($data);
+
         if (!($data instanceof \Magento\Framework\DataObject)) {
             $data = $this->dataObjectFactory->create($data);
         }
@@ -127,7 +143,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
                 return $paymentUrl;
             }
             else {
-                throw new \Magento\Framework\Exception\LocalizedException($this->_getHelper()->__("Invalid payment url"));
+                throw new \Magento\Framework\Exception\LocalizedException(__("Invalid payment url"));
             }
         }
 
@@ -224,7 +240,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @return \Picpay\Payment\Model\Standard
      */
-    public function order(\Magento\Framework\DataObject $payment, $amount)
+    public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         $payment->setSkipOrderProcessing(true);
 
@@ -238,10 +254,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $return = $this->paymentRequest($order);
 
         if(!is_array($return)) {
-            throw new \Magento\Framework\Exception\LocalizedException($this->_getHelper()->__('Unable to process payment. Contact Us.'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('Unable to process payment. Contact Us.'));
         }
         if($return['success'] == 0) {
-            throw new \Magento\Framework\Exception\LocalizedException($this->_getHelper()->__($return['return']));
+            throw new \Magento\Framework\Exception\LocalizedException(__($return['return']));
         }
 
         try {
@@ -264,7 +280,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @return \Picpay\Payment\Model\Standard
      */
-    public function void(\Magento\Framework\DataObject $payment)
+    public function void(\Magento\Payment\Model\InfoInterface $payment)
     {
         parent::void($payment);
 
@@ -276,10 +292,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $return = $this->cancelRequest($order);
 
         if(!is_array($return)) {
-            throw new \Magento\Framework\Exception\LocalizedException($this->_getHelper()->__('Unable to process void payment. Contact Us.'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('Unable to process void payment. Contact Us.'));
         }
         if($return['success'] == 0) {
-            throw new \Magento\Framework\Exception\LocalizedException($this->_getHelper()->__($return['return']));
+            throw new \Magento\Framework\Exception\LocalizedException(__($return['return']));
         }
 
         try {
@@ -302,7 +318,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      *
      * @return \Picpay\Payment\Model\Standard
      */
-    public function refund(\Magento\Framework\DataObject $payment, $amount)
+    public function refund(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
         parent::refund($payment, $amount);
 
@@ -314,10 +330,10 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         $return = $this->cancelRequest($order);
 
         if(!is_array($return)) {
-            throw new \Magento\Framework\Exception\LocalizedException($this->_getHelper()->__('Unable to process refund payment. Contact Us.'));
+            throw new \Magento\Framework\Exception\LocalizedException(__('Unable to process refund payment. Contact Us.'));
         }
         if($return['success'] == 0) {
-            throw new \Magento\Framework\Exception\LocalizedException($this->_getHelper()->__($return['return']));
+            throw new \Magento\Framework\Exception\LocalizedException(__($return['return']));
         }
 
         try {

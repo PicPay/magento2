@@ -15,13 +15,10 @@ But you can also request or suggest new features or code changes yourself!
 Open new issue [https://github.com/PicPay/magento2/issues](https://github.com/PicPay/magento2/issues).
 
 ## Installation
-#### Option A: download plugin
-[https://cdn.picpay.com/ecommerce/Picpay_Payment-1.0.0.tgz](https://cdn.picpay.com/ecommerce/Picpay_Payment-1.0.0.tgz)
 
-#### Option B: composer
-Copy the folders to your main Magento environment or use composer:
+Use composer:
 ```
-composer require picpay/magento1
+composer require picpay/magento2
 ```
 
 ## API Documentation

@@ -27,7 +27,7 @@ class Taxvat
         $options = array();
         $options[] = array(
             'value' => '',
-            'label' => $picpayHelper->__('Select the taxvat attribute')
+            'label' => __('Select the taxvat attribute')
         );
         foreach ($fields as $key => $value) {
             if (!is_null($value['frontend_label'])) {

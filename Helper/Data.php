@@ -3,6 +3,7 @@
 namespace Picpay\Payment\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\UrlInterface;
 
 class Data extends AbstractHelper
 {
@@ -67,6 +68,12 @@ class Data extends AbstractHelper
     protected $salesOrderStatusFactory;
 
     /**
+     * @var UrlInterface
+     */
+    protected $urlBuilder;
+
+
+    /**
      * Construtor
      */
     public function __construct(
@@ -78,7 +85,8 @@ class Data extends AbstractHelper
         \Psr\Log\LoggerInterface $logger,
         \Magento\Backend\Model\Session $backendSession,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
-        \Magento\Sales\Model\Order\StatusFactory $salesOrderStatusFactory
+        \Magento\Sales\Model\Order\StatusFactory $salesOrderStatusFactory,
+        UrlInterface $urlBuilder
     )
     {
         parent::__construct($context);
@@ -91,6 +99,7 @@ class Data extends AbstractHelper
         $this->backendSession = $backendSession;
         $this->transactionFactory = $transactionFactory;
         $this->salesOrderStatusFactory = $salesOrderStatusFactory;
+        $this->urlBuilder = $urlBuilder;
 
         if(is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
@@ -313,17 +322,40 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Check if current requested URL is secure
+     *
+     * @return boolean
+     */
+    public function isCurrentlySecure()
+    {
+        return $this->storeManager->getStore()->isCurrentlySecure();
+    }
+
+    /**
+     * @return UrlInterface
+     */
+    public function getUrlBuilder()
+    {
+        return $this->urlBuilder;
+    }
+
+    /**
      * Get URL to return to store
      */
     public function getReturnUrl()
     {
         $isSecure = $this->storeManager->getStore()->isCurrentlySecure();
-        $webUrl = Mage::getBaseUrl(\Magento\Store\Model\Store::URL_TYPE_WEB, array("_secure" => $isSecure));
 
         if($this->isIframeMode()) {
-            return $webUrl . self::SUCCESS_IFRAME_PATH_URL;
+            return $this->urlBuilder->getUrl(
+                self::SUCCESS_IFRAME_PATH_URL,
+                array("_secure" => $this->isCurrentlySecure())
+            );
         }
-        return $webUrl . self::SUCCESS_PATH_URL;
+        return $this->urlBuilder->getUrl(
+            self::SUCCESS_PATH_URL,
+            array("_secure" => $this->isCurrentlySecure())
+        );
     }
 
     /**
@@ -331,8 +363,10 @@ class Data extends AbstractHelper
      */
     public function getCallbackUrl()
     {
-        $isSecure = $this->storeManager->getStore()->isCurrentlySecure();
-        return Mage::getUrl('picpay/notification', array("_secure" => $isSecure));
+        return $this->urlBuilder->getUrl(
+            'picpay/notification/',
+            array("_secure" => $this->isCurrentlySecure())
+        );
     }
 
     /**
@@ -365,7 +399,7 @@ class Data extends AbstractHelper
     public function log($data)
     {
         if($this->getStoreConfig("debug")) {
-            $this->logger->log(null, $data);
+            $this->logger->debug($data);
         }
     }
 
@@ -393,7 +427,7 @@ class Data extends AbstractHelper
                 CURLOPT_TIMEOUT => $timeout,
                 CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
                 CURLOPT_CUSTOMREQUEST => $type,
-                CURLOPT_POSTFIELDS => Mage::helper('core')->jsonEncode($fields),
+                CURLOPT_POSTFIELDS => \json_encode($fields),
                 CURLOPT_HTTPHEADER => array(
                     "x-picpay-token: {$tokenApi}",
                     "cache-control: no-cache",
@@ -402,7 +436,7 @@ class Data extends AbstractHelper
             );
 
             $this->log("JSON sent to PicPay API. URL: ".$url);
-            $this->log(Mage::helper('core')->jsonEncode($fields));
+            $this->log(\json_encode($fields));
 
             curl_setopt_array($curl, $configs);
 
@@ -422,7 +456,7 @@ class Data extends AbstractHelper
             } else {
                 return array (
                     'success' => 1,
-                    'return' => Mage::helper('core')->jsonDecode( trim($response) )
+                    'return' => \json_decode(trim($response), true)
                 );
             }
         }

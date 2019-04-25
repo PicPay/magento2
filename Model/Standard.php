@@ -2,9 +2,14 @@
 
 namespace Picpay\Payment\Model;
 
-class Standard extends \Magento\Payment\Model\Method\AbstractMethod
+use Magento\Payment\Model\Method\AbstractMethod;
+use Magento\Payment\Model\MethodInterface;
+
+class Standard extends AbstractMethod implements MethodInterface
 {
-    protected $_code = 'picpay_standard';
+    const CODE = 'picpay_standard';
+
+    protected $_code = self::CODE;
     protected $_formBlockType = 'picpay_payment/form_picpay';
     protected $_infoBlockType = 'picpay_payment/info';
 
@@ -41,7 +46,8 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     protected $dataObjectFactory;
 
-    public function __construct(\Magento\Framework\Model\Context $context,
+    public function __construct(
+        \Magento\Framework\Model\Context $context,
         \Magento\Framework\Registry $registry,
         \Magento\Framework\Api\ExtensionAttributesFactory $extensionFactory,
         \Magento\Framework\Api\AttributeValueFactory $customAttributeFactory,
@@ -54,15 +60,24 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         \Picpay\Payment\Helper\Data $picpayHelper,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
         \Magento\Framework\Session\Generic $generic,
-//        \Psr\Log\LoggerInterface $logger,
         \Magento\Framework\DataObjectFactory $dataObjectFactory,
+        \Magento\Framework\Model\ResourceModel\AbstractResource $resource = null,
+        \Magento\Framework\Data\Collection\AbstractDb $resourceCollection = null,
         array $data = array()
     ) {
         parent::__construct(
-            $context, $registry, $extensionFactory, $customAttributeFactory,
-            $paymentData, $scopeConfig, $logger, $moduleList, $localeDate, null,
-            null, $data
+            $context,
+            $registry,
+            $extensionFactory,
+            $customAttributeFactory,
+            $paymentData,
+            $scopeConfig,
+            $logger,
+            $resource,
+            $resourceCollection,
+            $data
         );
+
         $this->_countryFactory = $countryFactory;
         $this->_minAmount = $this->getConfigData('min_order_total');
         $this->_maxAmount = $this->getConfigData('max_order_total');
@@ -98,8 +113,7 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function isAvailable(\Magento\Quote\Api\Data\CartInterface $quote = null)
     {
-        return parent::isAvailable($quote) && !empty($quote)
-            && $this->storeManager->getStore()->roundPrice($quote->getGrandTotal()) > 0;
+        return parent::isAvailable($quote);
     }
 
     /**
@@ -113,17 +127,14 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
     {
         parent::assignData($data);
 
-        if (!($data instanceof \Magento\Framework\DataObject)) {
-            $data = $this->dataObjectFactory->create($data);
-        }
-        if ($data instanceof \Magento\Framework\DataObject) {
-            $this->getInfoInstance()->addData($data->getData());
+        if (!$data instanceof \Magento\Framework\DataObject) {
+            $data = new \Magento\Framework\DataObject($data);
         }
 
         $info = $this->getInfoInstance();
-        
-        $info->setAdditionalInformation('return_url', $this->_getHelper()->getReturnUrl());
-        $info->setAdditionalInformation('mode_checkout', $this->_getHelper()->getCheckoutMode());
+
+//        $info->setAdditionalInformation('return_url', $this->_getHelper()->getReturnUrl());
+//        $info->setAdditionalInformation('mode_checkout', $this->_getHelper()->getCheckoutMode());
         
         return $this;
     }
@@ -148,7 +159,12 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
         }
 
         $isSecure = $this->storeManager->getStore()->isCurrentlySecure();
-        return Mage::getUrl('checkout/onepage/success', array('_secure' => $isSecure));
+        return $this->_getHelper()
+            ->getUrlBuilder()
+            ->getUrl(
+                'checkout/onepage/success',
+                array('_secure' => $isSecure)
+            );
     }
 
     /**
@@ -242,28 +258,29 @@ class Standard extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function order(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
-        $payment->setSkipOrderProcessing(true);
+        /** @var $payment */
+//        $payment->setSkipOrderProcessing(true);
 
         parent::order($payment, $amount);
 
         /** @var \Magento\Sales\Model\Order $order */
-        $order = $payment->getOrder();
+//        $order = $payment->getOrder();
 
         $this->_getHelper()->log("Order Model Payment Method");
 
-        $return = $this->paymentRequest($order);
+//        $return = $this->paymentRequest($order);
 
-        if(!is_array($return)) {
-            throw new \Magento\Framework\Exception\LocalizedException(__('Unable to process payment. Contact Us.'));
-        }
-        if($return['success'] == 0) {
-            throw new \Magento\Framework\Exception\LocalizedException(__($return['return']));
-        }
+//        if(!is_array($return)) {
+//            throw new \Magento\Framework\Exception\LocalizedException(__('Unable to process payment. Contact Us.'));
+//        }
+//        if($return['success'] == 0) {
+//            throw new \Magento\Framework\Exception\LocalizedException(__($return['return']));
+//        }
 
         try {
-            $payment->setAdditionalInformation("paymentUrl", $return["return"]["paymentUrl"]);
-            $payment->save();
-            $this->generic->setPicpayPaymentUrl($return["return"]["paymentUrl"]);
+//            $payment->setAdditionalInformation("paymentUrl", $return["return"]["paymentUrl"]);
+//            $payment->save();
+//            $this->generic->setPicpayPaymentUrl($return["return"]["paymentUrl"]);
         }
         catch (Exception $e) {
             $this->logger->critical($e);

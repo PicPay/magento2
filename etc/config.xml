@@ -4,7 +4,7 @@
         <payment>
             <picpay_standard>
                 <active>0</active>
-                <model>picpay_payment/standard</model>
+                <model>Picpay\Payment\Model\Standard</model>
                 <title>Picpay</title>
                 <mode>2</mode>
                 <allowspecific>0</allowspecific>

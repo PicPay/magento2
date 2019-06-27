@@ -78,17 +78,17 @@
                     </depends>
                 </field>
 
-                <field id="customer_cpf_attribute" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Customer document attribute</label>
-                    <source_model>\Picpay\Payment\Model\Source\Customer\Taxvat</source_model>
-                    <comment>If your store use a customer ID custom ttribute, select here.</comment>
-                </field>
+                <!--<field id="customer_cpf_attribute" translate="label" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
+                    <!--<label>Customer document attribute</label>-->
+                    <!--<source_model>\Picpay\Payment\Model\Source\Customer\Taxvat</source_model>-->
+                    <!--<comment>If your store use a customer ID custom ttribute, select here.</comment>-->
+                <!--</field>-->
 
-                <field id="address_telephone_attribute" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Customer telephone attribute</label>
-                    <source_model>\Picpay\Payment\Model\Source\Customer\Address</source_model>
-                    <comment>If your store use a custom telephone attribute, select here.</comment>
-                </field>
+                <!--<field id="address_telephone_attribute" translate="label" type="select" sortOrder="210" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">-->
+                    <!--<label>Customer telephone attribute</label>-->
+                    <!--<source_model>\Picpay\Payment\Model\Source\Customer\Address</source_model>-->
+                    <!--<comment>If your store use a custom telephone attribute, select here.</comment>-->
+                <!--</field>-->
 
                 <field id="notification" translate="label" type="select" sortOrder="300" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Enable status order notification</label>

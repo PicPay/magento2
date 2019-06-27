@@ -129,7 +129,6 @@
         <arguments>
             <argument name="handlers" xsi:type="array">
                 <item name="txnid" xsi:type="string">Picpay\Payment\Gateway\Response\TxnIdHandler</item>
-                <item name="fraud" xsi:type="string">Picpay\Payment\Gateway\Response\FraudHandler</item>
             </argument>
         </arguments>
     </virtualType>

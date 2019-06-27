@@ -29,7 +29,7 @@ class MockDataRequest implements BuilderInterface
         $transactionResult = $payment->getAdditionalInformation('transaction_result');
         return [
             self::FORCE_RESULT => $transactionResult === null
-                ? ClientMock::SUCCESS
+                ? 1
                 : $transactionResult
         ];
     }

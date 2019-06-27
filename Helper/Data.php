@@ -2,11 +2,18 @@
 
 namespace Picpay\Payment\Helper;
 
+use Magento\Config\Model\Config\Backend\Admin\Custom;
+use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\UrlInterface;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Sales\Model\Order;
+use Magento\Framework\HTTP\Adapter\Curl;
 
 class Data extends AbstractHelper
 {
+    const API_URL       = "https://appws.picpay.com/ecommerce/public";
+    const MODULE_NAME   = "Picpay_Payment";
     const ONPAGE_MODE   = 1;
     const IFRAME_MODE   = 2;
     const REDIRECT_MODE = 3;
@@ -31,11 +38,6 @@ class Data extends AbstractHelper
      * @var \Magento\Store\Model\StoreManagerInterface
      */
     protected $storeManager;
-
-    /**
-     * @var \Magento\Framework\App\Config\ScopeConfigInterface
-     */
-    protected $scopeConfig;
 
     /**
      * @var \Magento\Eav\Model\ConfigFactory
@@ -72,6 +74,20 @@ class Data extends AbstractHelper
      */
     protected $urlBuilder;
 
+    /**
+     * @var ModuleListInterface
+     */
+    protected $moduleList;
+
+    /**
+     * @var CustomerRepositoryInterface
+     */
+    protected $customerRepositoryInterface;
+
+    /**
+     * @var \Magento\Framework\HTTP\Adapter\Curl $curl
+     */
+    protected $curl;
 
     /**
      * Construtor
@@ -79,20 +95,21 @@ class Data extends AbstractHelper
     public function __construct(
         \Magento\Framework\App\Helper\Context $context,
         \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Eav\Model\ConfigFactory $eavConfigFactory,
         \Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory $eavResourceModelEntityAttributeCollectionFactory,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Backend\Model\Session $backendSession,
         \Magento\Framework\DB\TransactionFactory $transactionFactory,
         \Magento\Sales\Model\Order\StatusFactory $salesOrderStatusFactory,
-        UrlInterface $urlBuilder
+        UrlInterface $urlBuilder,
+        ModuleListInterface $moduleList,
+        CustomerRepositoryInterface $customerRepositoryInterface,
+        Curl $curl
     )
     {
         parent::__construct($context);
 
         $this->storeManager = $storeManager;
-        $this->scopeConfig = $scopeConfig;
         $this->eavConfigFactory = $eavConfigFactory;
         $this->eavResourceModelEntityAttributeCollectionFactory = $eavResourceModelEntityAttributeCollectionFactory;
         $this->logger = $logger;
@@ -100,6 +117,9 @@ class Data extends AbstractHelper
         $this->transactionFactory = $transactionFactory;
         $this->salesOrderStatusFactory = $salesOrderStatusFactory;
         $this->urlBuilder = $urlBuilder;
+        $this->moduleList = $moduleList;
+        $this->customerRepositoryInterface = $customerRepositoryInterface;
+        $this->curl = $curl;
 
         if(is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
@@ -122,7 +142,7 @@ class Data extends AbstractHelper
      */
     public function getStoreConfig($path)
     {
-        return $this->scopeConfig->getValue( self::XML_PATH_SYSTEM_CONFIG . '/' . $path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE, $this->_store );
+        return $this->scopeConfig->getValue( self::XML_PATH_SYSTEM_CONFIG . '/' . $path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
     }
 
     /**
@@ -229,6 +249,17 @@ class Data extends AbstractHelper
     }
 
     /**
+     * Get module's version
+     *
+     * @return mixed
+     */
+    public function getVersion()
+    {
+        return " - v".$this->moduleList
+            ->getOne(self::MODULE_NAME)['setup_version'];
+    }
+
+    /**
      * Get iframe style on iframe mode
      */
     public function getIframeStyle()
@@ -263,7 +294,7 @@ class Data extends AbstractHelper
      */
     public function getApiUrl($method = "")
     {
-        return $this->getStoreConfig("api_url") . $method;
+        return self::API_URL . $method;
     }
 
     /**
@@ -412,46 +443,44 @@ class Data extends AbstractHelper
      * @param integer $timeout
      * @return array
      */
-    public function requestApi($url, $fields, $type = "POST", $timeout = 20)
+    public function requestApi($url, $fields, $type = "POST", $timeout = 10)
     {
         $tokenApi = $this->getToken();
 
         try {
-            $curl = curl_init();
+            $headers = [
+                "x-picpay-token: {$tokenApi}",
+                "cache-control: no-cache",
+                "content-type: application/json"
+            ];
 
-            $configs = array(
-                CURLOPT_URL => $url,
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => "",
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => $timeout,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => $type,
-                CURLOPT_POSTFIELDS => \json_encode($fields),
-                CURLOPT_HTTPHEADER => array(
-                    "x-picpay-token: {$tokenApi}",
-                    "cache-control: no-cache",
-                    "content-type: application/json"
-                ),
-            );
+            $this->curl->setConfig([
+                'verifypeer' => false,
+                'verifyhost' => false,
+                'timeout'    => $timeout
+            ]);
 
             $this->log("JSON sent to PicPay API. URL: ".$url);
-            $this->log(\json_encode($fields));
+            $this->log((is_array($fields) ? \json_encode($fields) : $fields));
 
-            curl_setopt_array($curl, $configs);
+            $this->curl->write('POST',
+                $url,
+                $http_ver = '1.1',
+                $headers,
+                (is_array($fields) ? \json_encode($fields) : $fields)
+            );
 
-            $response = curl_exec($curl);
-            $err = curl_error($curl);
-
-            curl_close($curl);
+            $response = $this->curl->read();
 
             $this->log("JSON Response from PicPay API");
             $this->log($response);
 
-            if ($err) {
+            $httpCode = Zend_Http_Response::extractCode($response);
+
+            if ($err || ($httpCode != 200 && $httpCode == 201)) {
                 return array (
                     'success' => 0,
-                    'return' => $err
+                    'return' => ($err ? $err : $response)
                 );
             } else {
                 return array (
@@ -459,6 +488,10 @@ class Data extends AbstractHelper
                     'return' => \json_decode(trim($response), true)
                 );
             }
+//            return array (
+//                'success' => 1,
+//                'return' => []
+//            );
         }
         catch (Exception $e) {
             $this->log("ERROR on requesting API: " . $e->getMessage());
@@ -474,16 +507,26 @@ class Data extends AbstractHelper
     /**
      * Get buyer object from Order
      *
-     * @param \Magento\Sales\Model\Order $order
+     * @param \Magento\Payment\Gateway\Data\Order\OrderAdapter $order
      * @return array
      */
     public function getBuyer($order) {
+        /** @var \Magento\Payment\Gateway\Data\Order\AddressAdapter $billingAddress */
+        $billingAddress = $order->getBillingAddress();
 
-        $buyerFirstname = $order->getCustomerFirstname();
-        $buyerLastname = $order->getCustomerLastname();
-        $buyerDocument = $this->_getCustomerCpfValue($order);
-        $buyerEmail = $order->getCustomerEmail();
-        $buyerPhone = $this->_extractPhone($order->getBillingAddress()->getData($this->_getTelephoneAttribute()));
+        $customerId = $order->getCustomerId();
+        $customer = $this->customerRepositoryInterface->getById($customerId);
+
+        $taxvat = false;
+        if($customer && $customer->getId()) {
+            $taxvat = $customer->getTaxvat();
+        }
+
+        $buyerFirstname = $billingAddress->getFirstname();
+        $buyerLastname = $billingAddress->getLastname();
+        $buyerDocument = $taxvat;
+        $buyerEmail = $billingAddress->getEmail();
+        $buyerPhone = $this->_extractPhone($billingAddress->getTelephone());
 
         return array(
             "firstName" => $buyerFirstname,
@@ -564,6 +607,28 @@ class Data extends AbstractHelper
             }
         }
         return $cpf;
+    }
+
+    /**
+     * Get expire date for a order
+     *
+     * @param Mage_Sales_Model_Order $order
+     * @return false|string
+     */
+    public function getExpiresAt($order) {
+        $createdAt = date("Y-m-d H:i:s");
+        if($order instanceof Order) {
+            $createdAt = $order->getCreatedAt();
+        }
+        $createdAtTime = \strtotime($createdAt);
+        $days = (int) $this->getStoreConfig("days_to_expires");
+        if(is_numeric($days) && (int) $days > 0) {
+            $createdAtTime += ($days * 86400);
+        }
+        else {
+            return false;
+        }
+        return \date("c", $createdAtTime);
     }
 
     /**

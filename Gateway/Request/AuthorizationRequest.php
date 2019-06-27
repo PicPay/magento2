@@ -5,6 +5,7 @@ namespace Picpay\Payment\Gateway\Request;
 use Magento\Payment\Gateway\ConfigInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
+use Picpay\Payment\Helper\Data as Picpay;
 
 class AuthorizationRequest implements BuilderInterface
 {
@@ -14,13 +15,21 @@ class AuthorizationRequest implements BuilderInterface
     private $config;
 
     /**
+     * @var Picpay
+     */
+    private $picpay;
+
+    /**
      * @param ConfigInterface $config
+     * @param Picpay $picpay
      */
     public function __construct(
-        ConfigInterface $config
+        ConfigInterface $config,
+        Picpay $picpay
     )
     {
         $this->config = $config;
+        $this->picpay = $picpay;
     }
 
     /**
@@ -36,20 +45,25 @@ class AuthorizationRequest implements BuilderInterface
         ) {
             throw new \InvalidArgumentException('Payment data object should be provided');
         }
+
         /** @var PaymentDataObjectInterface $payment */
         $payment = $buildSubject['payment'];
-        $order = $payment->getOrder();
+        $order   = $payment->getOrder();
         $address = $order->getShippingAddress();
+
+        $version = $this->picpay->getVersion();
+        $expiresAt = $this->picpay->getExpiresAt($order);
+
         return [
-            'TXN_TYPE' => 'A',
-            'INVOICE' => $order->getOrderIncrementId(),
-            'AMOUNT' => $order->getGrandTotalAmount(),
-            'CURRENCY' => $order->getCurrencyCode(),
-            'EMAIL' => $address->getEmail(),
-            'MERCHANT_KEY' => $this->config->getValue(
-                'seller_token',
-                $order->getStoreId()
-            )
+            'TXN_TYPE'      => 'A',
+            'referenceId'   => $order->getOrderIncrementId(),
+            'callbackUrl'   => $this->picpay->getCallbackUrl(),
+            'returnUrl'     => $this->picpay->getReturnUrl(),
+            'value'         => round($order->getGrandTotalAmount(), 2),
+            'buyer'         => $this->picpay->getBuyer($order),
+            'plugin'        => "Magento 2". $version,
+            'api_url'       => $this->picpay->getApiUrl("/payments"),
+            'expiresAt'     => $expiresAt
         ];
     }
 }

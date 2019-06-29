@@ -1,6 +1,6 @@
 <?php
 
-namespace Picpay\Payment\Controller\Adminhtml\Standard;
+namespace Picpay\Payment\Controller\Standard;
 
 class Success extends \Magento\Framework\App\Action\Action{
 

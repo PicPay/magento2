@@ -90,6 +90,11 @@ class Data extends AbstractHelper
     protected $curl;
 
     /**
+     * @var \Magento\Sales\Api\RefundInvoiceInterface
+     */
+    protected $_invoiceRefunder;
+
+    /**
      * Construtor
      */
     public function __construct(
@@ -104,7 +109,8 @@ class Data extends AbstractHelper
         UrlInterface $urlBuilder,
         ModuleListInterface $moduleList,
         CustomerRepositoryInterface $customerRepositoryInterface,
-        Curl $curl
+        Curl $curl,
+        \Magento\Sales\Api\RefundInvoiceInterface $refundInvoice
     )
     {
         parent::__construct($context);
@@ -120,7 +126,7 @@ class Data extends AbstractHelper
         $this->moduleList = $moduleList;
         $this->customerRepositoryInterface = $customerRepositoryInterface;
         $this->curl = $curl;
-
+        $this->_invoiceRefunder = $refundInvoice;
         if(is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
         }
@@ -396,7 +402,7 @@ class Data extends AbstractHelper
     {
         return $this->urlBuilder->getUrl(
             'picpay/notification/',
-            array("_secure" => $this->isCurrentlySecure())
+            array("_secure" => $this->isCurrentlySecure(), "isAjax" => 1)
         );
     }
 
@@ -463,7 +469,7 @@ class Data extends AbstractHelper
             $this->log("JSON sent to PicPay API. URL: ".$url);
             $this->log((is_array($fields) ? \json_encode($fields) : $fields));
 
-            $this->curl->write('POST',
+            $this->curl->write($type,
                 $url,
                 $http_ver = '1.1',
                 $headers,
@@ -483,6 +489,7 @@ class Data extends AbstractHelper
                     'return' => $response
                 );
             } else {
+                $response = \Zend_Http_Response::extractBody($response);
                 return array (
                     'success' => 1,
                     'return' => \json_decode(trim($response), true)
@@ -662,29 +669,29 @@ class Data extends AbstractHelper
      * @param \Magento\Sales\Model\Order $order
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _processRefundOrder($order)
+    protected function _processRefundOrder($order, $authorizationId)
     {
         if($order->canUnhold()) {
-            $order->unhold()->save();
+            $order->unhold();
         }
 
         if($order->canCancel()) {
             $order->cancel();
-            return false;
         }
-
-        // not can cancel, need do a creditmemo
-        $service = Mage::getModel('sales/service_order', $order);
 
         $invoices = array();
         foreach ($order->getInvoiceCollection() as $invoice) {
+            echo (int) $invoice->canRefund();
+            echo "\n";
+            echo $invoice->getId();
+            echo "\n";
             if ($invoice->canRefund()) {
                 $invoices[] = $invoice;
             }
         }
 
-        if(empty($invoices)) {
-            $message = $this->__("There isn't invoice to refund on order " . $order->getIncrementId());
+        /*if(empty($invoices)) {
+            $message = __("There isn't invoice to refund on order " . $order->getIncrementId());
             if($this->getStore()->isAdmin()) {
                 $this->backendSession->addError($message);
                 return false;
@@ -692,17 +699,25 @@ class Data extends AbstractHelper
             else {
                 throw new \Magento\Framework\Exception\LocalizedException($message);
             }
-        }
+        }*/
 
+        /**
+         * @var Order\Invoice
+         */
         foreach ($invoices as $invoice) {
-            $creditmemo = $service->prepareInvoiceCreditmemo($invoice)->register()->save();
 
-            $this->transactionFactory->create()
-                ->addObject($creditmemo)
-                ->addObject($creditmemo->getOrder())
-                ->addObject($creditmemo->getInvoice())
-                ->save();
+            /**
+             * @var \Magento\Sales\Api\RefundInvoiceInterface $invoiceRefunder
+             */
+            $this->_invoiceRefunder->execute(
+                $invoice->getId(),
+                [],
+                false,
+                false,
+                __("Refunded by notification")
+            );
         }
+        $order->save();
     }
 
     /**
@@ -725,8 +740,8 @@ class Data extends AbstractHelper
         $invoice = Mage::getModel('sales/service_order', $order)
             ->prepareInvoice();
 
-        if (!$invoice->getTotalQty()) {
-            $message = $this->__("Cannot create an invoice without products.");
+        /*if (!$invoice->getTotalQty()) {
+            $message = __("Cannot create an invoice without products.");
             if($this->getStore()->isAdmin()) {
                 $this->backendSession->addError($message);
                 return false;
@@ -734,7 +749,7 @@ class Data extends AbstractHelper
             else {
                 throw new \Magento\Framework\Exception\LocalizedException($message);
             }
-        }
+        }*/
 
         $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
         $invoice->register();
@@ -742,7 +757,7 @@ class Data extends AbstractHelper
         $invoice->getOrder()->setCustomerNoteNotify(false);
         $invoice->getOrder()->setIsInProcess(true);
 
-        $order->addStatusHistoryComment($this->__("Order invoiced by API notification. Authorization Id: ".$authorizationId), false);
+        $order->addStatusHistoryComment(__("Order invoiced by API notification. Authorization Id: ".$authorizationId), false);
 
         $invoice->pay();
         $invoice->sendEmail(true);

@@ -79,11 +79,11 @@ class Observer extends \Magento\Framework\Event\Observer
         $helper->log($return);
 
         if(!is_array($return)) {
-            $this->generic->addError($helper->__('Error while try refund order.'));
+            $this->generic->addError(__('Error while try refund order.'));
             return $this;
         }
         if($return['success'] == 0) {
-            $this->generic->addError($helper->__('Error while try refund order.') . " " . $return['return']);
+            $this->generic->addError(__('Error while try refund order.') . " " . $return['return']);
             return $this;
         }
 
@@ -92,10 +92,10 @@ class Observer extends \Magento\Framework\Event\Observer
                 $payment->setAdditionalInformation("cancellationId", $return["return"]["cancellationId"]);
                 $payment->save();
             }
-            $this->generic->addSuccess($helper->__('Order canceled with success at Picpay.'));
+            $this->generic->addSuccess(__('Order canceled with success at Picpay.'));
         }
         catch (Exception $e) {
-            $this->generic->addError($helper->__('Error while try refund order. '. $e->getMessage()));
+            $this->generic->addError(__('Error while try refund order. '. $e->getMessage()));
             $this->logger->critical($e);
         }
         return $this;

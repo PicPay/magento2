@@ -1,8 +1,10 @@
-<?php 
+<?php
 
-namespace Picpay\Payment\Controller\Adminhtml\Notification;
+namespace Picpay\Payment\Controller\Notification;
 
-use Magento\Framework\Controller\ResultFactory; 
+use Magento\Framework\Controller\ResultFactory;
+use Magento\Sales\Model\Order;
+use Magento\TestFramework\Event\Magento;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
@@ -32,7 +34,8 @@ class Index extends \Magento\Framework\App\Action\Action
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
         \Picpay\Payment\Helper\Data $paymentHelper,
         \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
-    ) {
+    )
+    {
         $this->logger = $logger;
         $this->salesOrderFactory = $salesOrderFactory;
         $this->paymentHelper = $paymentHelper;
@@ -58,8 +61,8 @@ class Index extends \Magento\Framework\App\Action\Action
      *
      * @param array $data Data to be json encoded
      * @param int $statusCode HTTP response status code
-     * @throws \Zend_Controller_Exception
      * @return \Zend_Controller_Response_Abstract
+     * @throws \Zend_Controller_Exception
      */
     protected function _toJson($data = array(), $statusCode = 200)
     {
@@ -83,42 +86,6 @@ class Index extends \Magento\Framework\App\Action\Action
     }
 
     /**
-     * Validate basic authorization before dispatching
-     *
-     * @return Picpay_Payment_NotificationController $this
-     */
-    public function preDispatch()
-    {
-        parent::preDispatch();
-
-        // Make sure to run if module is enabled and active on system config
-        if (!$this->getHelper()->isModuleEnabled()) {
-            $this->setFlag('', self::FLAG_NO_DISPATCH, true);
-            return $this->toJson(array('message' => 'Module disabled'), 400);
-        }
-
-        // Check HTTP method
-        if(!$this->getRequest()->isPost()) {
-            $this->setFlag('', self::FLAG_NO_DISPATCH, true);
-            return $this->toJson(array('message' => 'Invalid HTTP Method'), 400);
-        }
-
-        // Notification Disabled
-        if (!$this->getHelper()->isNotificationEnabled()) {
-            $this->setFlag('', self::FLAG_NO_DISPATCH, true);
-            return $this->toJson(array('message' => 'Notifications disabled'), 403);
-        }
-
-        // Validate authorization
-        if (!$this->getHelper()->validateAuth($this->getRequest())) {
-            $this->setFlag('', self::FLAG_NO_DISPATCH, true);
-            return $this->toJson(array('message' => 'Authentication failed'), 403);
-        }
-
-        return $this;
-    }
-
-    /**
      * Normalize a request params based on content-type and methods
      *
      * @param \Zend_Controller_Request_Http $request Request with data (raw body, json, form data, etc)
@@ -127,12 +94,11 @@ class Index extends \Magento\Framework\App\Action\Action
      * @throws \Zend_Controller_Request_Exception
      * @throws \Zend_Json_Exception
      */
-    protected function _normalizeParams(\Zend_Controller_Request_Http $request, $methods = array('PUT', 'POST'))
+    protected function _normalizeParams($request, $methods = array('PUT', 'POST'))
     {
         if (in_array($request->getMethod(), $methods) && 'application/json' == $request->getHeader('Content-Type')) {
-            if (false !== ($body = $request->getRawBody())) {
+            if (false !== ($body = $request->getContent())) {
                 $this->getHelper()->log($body);
-
                 try {
                     $body = str_replace("\t","",$body);
                     $body = str_replace("\r","",$body);
@@ -143,11 +109,9 @@ class Index extends \Magento\Framework\App\Action\Action
                     $this->logger->critical($exception);
                     throw new \Zend_Json_Exception($exception->getMessage());
                 }
-
                 $request->setParams($data);
             }
         }
-
         return $request;
     }
 
@@ -157,39 +121,53 @@ class Index extends \Magento\Framework\App\Action\Action
     public function execute()
     {
         $request = $this->_normalizeParams($this->getRequest());
+        $this->logger->debug(print_r($request->getParams(), true));
 
         $referenceId = $request->get("referenceId");
         $authorizationId = $request->get("authorizationId");
+        $resultPage = $this->resultJsonFactory->create();
 
-        if(!$referenceId) {
-            $this->getResponse()->setHeader('HTTP/1.1', '422 Unprocessable Entity');
-            return;
+        if (!$referenceId) {
+            return $resultPage->setHttpResponseCode(422);
         }
 
-        /** @var \Magento\Sales\Model\Order $order */
         $order = $this->salesOrderFactory->create()->loadByIncrementId($referenceId);
 
-        if(!$order || !$order->getId()) {
-            $this->getResponse()->setHeader('HTTP/1.1', '422 Unprocessable Entity');
-            return;
+        if (!$order || !$order->getId()) {
+            return $resultPage->setHttpResponseCode(422);
         }
 
-        /** @var \Picpay\Payment\Helper\Data $picpayHelper */
-        $picpayHelper = $this->paymentHelper;
-
         try {
-            $return = $order->getPayment()->getMethodInstance()->consultRequest($order);
-            if(isset($return["return"]["status"])) {
-                $picpayHelper->updateOrder($order, $return, $authorizationId);
-            }
-            else {
-                $this->getResponse()->setHeader('HTTP/1.1', '400 Bad Request');
-                return;
+            $return = $this->consultRequest($order);
+            if (isset($return["return"]["status"])) {
+                $this->getHelper()->updateOrder($order, $return, $authorizationId);
+            } else {
+                return $resultPage->setHttpResponseCode(400);
             }
         } catch (Exception $e) {
             $this->logger->critical($e);
-            $this->getResponse()->setHeader('HTTP/1.1', '422 Unprocessable Entity');
-            return;
+            $resultPage->setHttpResponseCode(422);
         }
+
+        return $resultPage;
+    }
+
+    /**
+     * Consult transaction via API
+     *
+     * @param Order $order
+     * @return bool|mixed|string
+     */
+    public function consultRequest($order)
+    {
+        $result = $this->getHelper()->requestApi(
+            $this->getHelper()->getApiUrl("/payments/{$order->getIncrementId()}/status"),
+            array(),
+            "GET"
+        );
+        if(isset($result['success'])) {
+            return $result;
+        }
+        return false;
     }
 }

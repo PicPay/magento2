@@ -1,8 +1,9 @@
-<?xml version="1.0"?>
-<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:noNamespaceSchemaLocation="urn:magento:framework:App/etc/routes.xsd">
     <router id="standard">
-        <route id="picpay_payment" frontName="picpay">
-            <module name="Picpay_Payment" />
+        <route frontName="picpay" id="picpay_payment">
+            <module name="Picpay_Payment"/>
         </route>
     </router>
 </config>

@@ -7,6 +7,7 @@ use Magento\Payment\Gateway\ConfigInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Sales\Api\Data\OrderPaymentInterface;
+use Picpay\Payment\Helper\Data as Picpay;
 
 class VoidRequest implements BuilderInterface
 {
@@ -16,13 +17,20 @@ class VoidRequest implements BuilderInterface
     private $config;
 
     /**
+     * @var Picpay
+     */
+    private $picpay;
+
+    /**
      * @param ConfigInterface $config
      */
     public function __construct(
-        ConfigInterface $config
+        ConfigInterface $config,
+        Picpay $picpay
     )
     {
         $this->config = $config;
+        $this->picpay = $picpay;
     }
 
     /**
@@ -41,17 +49,11 @@ class VoidRequest implements BuilderInterface
         /** @var PaymentDataObjectInterface $paymentDO */
         $paymentDO = $buildSubject['payment'];
         $order = $paymentDO->getOrder();
-        $payment = $paymentDO->getPayment();
-        if (!$payment instanceof OrderPaymentInterface) {
-            throw new \LogicException('Order payment should be provided.');
-        }
+
         return [
-            'TXN_TYPE' => 'V',
-            'TXN_ID' => $payment->getLastTransId(),
-            'MERCHANT_KEY' => $this->config->getValue(
-                'seller_token',
-                $order->getStoreId()
-            )
+            'TXN_TYPE'    => 'V',
+            'api_url'     => $this->picpay->getApiUrl("/payments"),
+            'referenceId' => $order->getOrderIncrementId()
         ];
     }
 }

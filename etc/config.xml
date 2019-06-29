@@ -23,6 +23,7 @@
                 <can_use_checkout>1</can_use_checkout>
                 <is_gateway>1</is_gateway>
                 <payment_action>authorize</payment_action>
+                <days_to_expires>3</days_to_expires>
             </picpay_standard>
         </payment>
     </default>

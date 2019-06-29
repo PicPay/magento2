@@ -475,12 +475,12 @@ class Data extends AbstractHelper
             $this->log("JSON Response from PicPay API");
             $this->log($response);
 
-            $httpCode = Zend_Http_Response::extractCode($response);
+            $httpCode = \Zend_Http_Response::extractCode($response);
 
-            if ($err || ($httpCode != 200 && $httpCode == 201)) {
+            if ($httpCode != 200 && $httpCode == 201) {
                 return array (
                     'success' => 0,
-                    'return' => ($err ? $err : $response)
+                    'return' => $response
                 );
             } else {
                 return array (
@@ -621,13 +621,13 @@ class Data extends AbstractHelper
             $createdAt = $order->getCreatedAt();
         }
         $createdAtTime = \strtotime($createdAt);
+
         $days = (int) $this->getStoreConfig("days_to_expires");
+
         if(is_numeric($days) && (int) $days > 0) {
             $createdAtTime += ($days * 86400);
         }
-        else {
-            return false;
-        }
+
         return \date("c", $createdAtTime);
     }
 

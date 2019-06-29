@@ -21,6 +21,7 @@
                         <field id="*/*/mode">2</field>
                     </depends>
                     <comment>In pixels. Just numbers.</comment>
+                    <validate>validate-number validate-zero-or-greater</validate>
                 </field>
                 <field id="iframe_height" translate="label comment" type="text" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Iframe height on iframe Mode</label>
@@ -28,6 +29,7 @@
                         <field id="*/*/mode">2</field>
                     </depends>
                     <comment>In pixels. Just numbers.</comment>
+                    <validate>validate-number validate-zero-or-greater</validate>
                 </field>
                 <field id="iframe_message" translate="label comment" type="textarea" sortOrder="60" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Iframe callback message after paid</label>
@@ -42,6 +44,7 @@
                         <field id="*/*/mode">1</field>
                     </depends>
                     <comment>In pixels. Just numbers.</comment>
+                    <validate>validate-number validate-zero-or-greater</validate>
                 </field>
                 <field id="onpage_message" translate="label" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Message to show with qrcode on success page</label>
@@ -52,12 +55,18 @@
                 <field id="qrcode_info_width" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Qrcode width on info payments</label>
                     <comment>In pixels. Just numbers.</comment>
+                    <validate>validate-number validate-zero-or-greater</validate>
                 </field>
                 <field id="token" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>API Picpay Token</label>
                 </field>
                 <field id="seller_token" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>API Seller Token</label>
+                </field>
+                <field id="days_to_expires" translate="label" type="text" sortOrder="115" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Days to expires</label>
+                    <comment>Days to expires the transaction. Just numbers.</comment>
+                    <validate>validate-number validate-zero-or-greater</validate>
                 </field>
                 <field id="order_status" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>Order status: order creation</label>

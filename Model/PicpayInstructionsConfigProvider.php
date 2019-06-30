@@ -37,6 +37,7 @@ class PicpayInstructionsConfigProvider implements ConfigProviderInterface
     {
         $config = [];
         $config['payment']['picpay_instructions'] = $this->getInstructions();
+        $config['payment']['picpay_checkout_mode'] = $this->paymentHelper->getCheckoutMode();
         return $config;
     }
 

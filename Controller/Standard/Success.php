@@ -9,5 +9,6 @@ class Success extends \Magento\Framework\App\Action\Action{
      */
     public function execute()
     {
+        echo "Success aqui";
     }
 }

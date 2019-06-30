@@ -7,8 +7,12 @@ use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\UrlInterface;
 use Magento\Framework\Module\ModuleListInterface;
-use Magento\Sales\Model\Order;
+use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\HTTP\Adapter\Curl;
+use Magento\Sales\Api\RefundInvoiceInterface;
+use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Sales\Model\Service\InvoiceService;
 
 class Data extends AbstractHelper
 {
@@ -92,7 +96,22 @@ class Data extends AbstractHelper
     /**
      * @var \Magento\Sales\Api\RefundInvoiceInterface
      */
-    protected $_invoiceRefunder;
+    protected $invoiceRefunder;
+
+    /**
+     * @var \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender
+     */
+    protected $invoiceSender;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
+     * @var \Magento\Sales\Model\Service\InvoiceService
+     */
+    protected $invoiceService;
 
     /**
      * Construtor
@@ -110,9 +129,11 @@ class Data extends AbstractHelper
         ModuleListInterface $moduleList,
         CustomerRepositoryInterface $customerRepositoryInterface,
         Curl $curl,
-        \Magento\Sales\Api\RefundInvoiceInterface $refundInvoice
-    )
-    {
+        RefundInvoiceInterface $refundInvoice,
+        InvoiceSender $invoiceSender,
+        InvoiceService $invoiceService,
+        ManagerInterface $messageManager
+    ) {
         parent::__construct($context);
 
         $this->storeManager = $storeManager;
@@ -126,7 +147,10 @@ class Data extends AbstractHelper
         $this->moduleList = $moduleList;
         $this->customerRepositoryInterface = $customerRepositoryInterface;
         $this->curl = $curl;
-        $this->_invoiceRefunder = $refundInvoice;
+        $this->invoiceRefunder = $refundInvoice;
+        $this->invoiceSender = $invoiceSender;
+        $this->invoiceService = $invoiceService;
+
         if(is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
         }
@@ -409,11 +433,11 @@ class Data extends AbstractHelper
     /**
      * Validate a HTTP Request Authorization
      *
-     * @param \Zend_Controller_Request_Http $request
-     * @throws \Zend_Controller_Request_Exception
+     * @param Magento\Framework\App\Request\Http $request
+     * @throws \Exception
      * @return bool
      */
-    public function validateAuth(\Zend_Controller_Request_Http $request)
+    public function validateAuth($request)
     {
         // Validate system config values
         if (!$this->getSellerToken()) {
@@ -681,25 +705,14 @@ class Data extends AbstractHelper
 
         $invoices = array();
         foreach ($order->getInvoiceCollection() as $invoice) {
-            echo (int) $invoice->canRefund();
-            echo "\n";
-            echo $invoice->getId();
-            echo "\n";
+//            echo (int) $invoice->canRefund();
+//            echo "\n";
+//            echo $invoice->getId();
+//            echo "\n";
             if ($invoice->canRefund()) {
                 $invoices[] = $invoice;
             }
         }
-
-        /*if(empty($invoices)) {
-            $message = __("There isn't invoice to refund on order " . $order->getIncrementId());
-            if($this->getStore()->isAdmin()) {
-                $this->backendSession->addError($message);
-                return false;
-            }
-            else {
-                throw new \Magento\Framework\Exception\LocalizedException($message);
-            }
-        }*/
 
         /**
          * @var Order\Invoice
@@ -709,7 +722,7 @@ class Data extends AbstractHelper
             /**
              * @var \Magento\Sales\Api\RefundInvoiceInterface $invoiceRefunder
              */
-            $this->_invoiceRefunder->execute(
+            $this->invoiceRefunder->execute(
                 $invoice->getId(),
                 [],
                 false,
@@ -737,36 +750,48 @@ class Data extends AbstractHelper
         $payment->setAdditionalInformation("authorizationId", $authorizationId);
         $payment->save();
 
-        $invoice = Mage::getModel('sales/service_order', $order)
-            ->prepareInvoice();
+        /** @var \Magento\Sales\Model\Order\Invoice $invoice */
+        $invoice = $this->invoiceService->prepareInvoice($order);
 
-        /*if (!$invoice->getTotalQty()) {
-            $message = __("Cannot create an invoice without products.");
-            if($this->getStore()->isAdmin()) {
-                $this->backendSession->addError($message);
-                return false;
-            }
-            else {
-                throw new \Magento\Framework\Exception\LocalizedException($message);
-            }
-        }*/
+        if (!$invoice) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('We can\'t save the invoice right now.')
+            );
+        }
+        if (!$invoice->getTotalQty()) {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('You can\'t create an invoice without products.')
+            );
+        }
 
-        $invoice->setRequestedCaptureCase(\Magento\Sales\Model\Order\Invoice::CAPTURE_OFFLINE);
+        $invoice->setRequestedCaptureCase(
+            \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE
+        );
+
         $invoice->register();
 
         $invoice->getOrder()->setCustomerNoteNotify(false);
         $invoice->getOrder()->setIsInProcess(true);
 
-        $order->addStatusHistoryComment(__("Order invoiced by API notification. Authorization Id: ".$authorizationId), false);
+        $order->addStatusHistoryComment(
+            __("Order invoiced by API notification. Authorization Id: ".$authorizationId),
+            false
+        );
 
         $invoice->pay();
-        $invoice->sendEmail(true);
+        $invoice->setEmailSent(true);
 
         $transactionSave = $this->transactionFactory->create()
             ->addObject($invoice)
             ->addObject($order);
 
         $transactionSave->save();
+
+        try {
+            $this->invoiceSender->send($invoice);
+        } catch (\Exception $e) {
+            $this->messageManager->addErrorMessage(__('We can\'t send the invoice email right now.'));
+        }
 
         /** @var \Magento\Sales\Model\Order\Status $status */
         $status = $this->salesOrderStatusFactory->create()->loadDefaultByState("processing");
@@ -777,11 +802,11 @@ class Data extends AbstractHelper
         $order->save();
     }
 
-    public function generateQrCode($dataText, $imageWidth = 200)
+    public function generateQrCode($dataText, $imageWidth = 200, $style = "")
     {
-        return null;
-//        $svgTagId   = 'picpay-qrcode';
-//        $saveToFile = false;
-//        return QRcode::svg($dataText, $svgTagId, $saveToFile, QR_ECLEVEL_L, $imageWidth);
+        if(is_array($dataText)) {
+            $dataText = $dataText['base64'];
+        }
+        return '<img src="'.$dataText.'" width="'.$imageWidth.'" style="'.$style.'"/>';
     }
 }

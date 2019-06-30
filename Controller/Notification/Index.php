@@ -127,6 +127,14 @@ class Index extends \Magento\Framework\App\Action\Action
         $authorizationId = $request->get("authorizationId");
         $resultPage = $this->resultJsonFactory->create();
 
+        if (!$this->getHelper()->isNotificationEnabled()) {
+            return $resultPage->setHttpResponseCode(403);
+        }
+
+        if (!$this->getHelper()->validateAuth($this->getRequest())) {
+            return $resultPage->setHttpResponseCode(401);
+        }
+
         if (!$referenceId) {
             return $resultPage->setHttpResponseCode(422);
         }

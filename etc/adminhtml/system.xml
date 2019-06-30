@@ -69,7 +69,7 @@
                     <validate>validate-number validate-zero-or-greater</validate>
                 </field>
                 <field id="order_status" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Order status: order creation</label>
+                    <label>Status for new orders</label>
                     <comment>
                         Status given to newly created orders before payment result confirmation via server notifications.
                     </comment>

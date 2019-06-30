@@ -12,7 +12,7 @@ define(
                 return window.checkoutConfig.payment.checkmo.mailingAddress;
             },
             getInstructions: function () {
-                return 'TODO';//window.checkoutConfig.payment.instructions[this.item.method];
+                return window.checkoutConfig.payment.picpay_instructions;
             },
         });
     }

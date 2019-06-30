@@ -49,11 +49,12 @@ class VoidRequest implements BuilderInterface
         /** @var PaymentDataObjectInterface $paymentDO */
         $paymentDO = $buildSubject['payment'];
         $order = $paymentDO->getOrder();
+        $payment = $paymentDO->getPayment();
 
         return [
             'TXN_TYPE'    => 'V',
-            'api_url'     => $this->picpay->getApiUrl("/payments"),
-            'referenceId' => $order->getOrderIncrementId()
+            'api_url'     => $this->picpay->getApiUrl("/payments/{$order->getOrderIncrementId()}/cancellations"),
+            'authorizationId' => $payment->getAdditionalInformation("authorizationId")
         ];
     }
 }

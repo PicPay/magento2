@@ -22,6 +22,11 @@ class Info extends ConfigurableInfo
      */
     protected $paymentHelper;
 
+    /**
+     * @var string
+     */
+    protected $_template = 'Picpay_Payment::info.phtml';
+
     public function __construct(
         Context $context,
         ConfigInterface $config,
@@ -33,33 +38,6 @@ class Info extends ConfigurableInfo
         parent::__construct($context, $config, $data);
         $this->registry = $registry;
         $this->paymentHelper = $paymentHelper;
-    }
-
-    /**
-     * Returns label
-     *
-     * @param string $field
-     * @return string | Phrase
-     */
-    protected function getLabel($field)
-    {
-        return __($field);
-    }
-
-    /**
-     * Returns value view
-     *
-     * @param string $field
-     * @param string $value
-     * @return string | Phrase
-     */
-    protected function getValueView($field, $value)
-    {
-        switch ($field) {
-            case FraudHandler::FRAUD_MSG_LIST:
-                return implode('; ', $value);
-        }
-        return parent::getValueView($field, $value);
     }
 
     /**
@@ -120,9 +98,20 @@ class Info extends ConfigurableInfo
         return $payment->getAdditionalInformation("authorizationId");
     }
 
+    public function getQrcodeSource()
+    {
+        $order = $this->getOrder();
+        if(is_null($order)) {
+            return "";
+        }
+        /** @var Mage_Sales_Model_Order_Payment $payment */
+        $payment = $order->getPayment();
+        return $payment->getAdditionalInformation("qrcode");
+    }
+
     public function getQrcode()
     {
-        if ($paymentUrl = $this->getPaymentUrl()) {
+        if ($paymentUrl = $this->getQrcodeSource()) {
             /** @var \Picpay\Payment\Helper\Data $picpayHelper */
             $picpayHelper = $this->paymentHelper;
 

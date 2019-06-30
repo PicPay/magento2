@@ -4,14 +4,11 @@ namespace Picpay\Payment\Gateway\Response;
 
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Response\HandlerInterface;
-use Magento\Sales\Model\Order\Payment;
 
-class FraudHandler implements HandlerInterface
+class RefundHandler implements HandlerInterface
 {
-    const FRAUD_MSG_LIST = 'FRAUD_MSG_LIST';
-
     /**
-     * Handles fraud messages
+     * Handles transaction id
      *
      * @param array $handlingSubject
      * @param array $response
@@ -19,9 +16,6 @@ class FraudHandler implements HandlerInterface
      */
     public function handle(array $handlingSubject, array $response)
     {
-        if (!isset($response[self::FRAUD_MSG_LIST]) || !is_array($response[self::FRAUD_MSG_LIST])) {
-            return;
-        }
         if (!isset($handlingSubject['payment'])
             || !$handlingSubject['payment'] instanceof PaymentDataObjectInterface
         ) {
@@ -29,13 +23,18 @@ class FraudHandler implements HandlerInterface
         }
         /** @var PaymentDataObjectInterface $paymentDO */
         $paymentDO = $handlingSubject['payment'];
+        /** @var $payment \Magento\Sales\Model\Order\Payment */
         $payment = $paymentDO->getPayment();
-        $payment->setAdditionalInformation(
-            self::FRAUD_MSG_LIST,
-            (array)$response[self::FRAUD_MSG_LIST]
-        );
-        /** @var $payment Payment */
-        $payment->setIsTransactionPending(true);
-        $payment->setIsFraudDetected(true);
+
+        if($response["success"] == 1) {
+            if(isset($response["return"]["cancellationId"])) {
+                $payment->setAdditionalInformation("cancellationId", $response["return"]["cancellationId"]);
+            }
+        }
+        else {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Error on refund or void transaction')
+            );
+        }
     }
 }

@@ -21,6 +21,11 @@ Use composer:
 composer require picpay/magento2
 ```
 
+After:
+```
+php bin/magento setup:upgrade
+```
+
 ## API Documentation
 ##### - [PicPay E-Commerce registration page](https://ecommerce.picpay.com/)
 

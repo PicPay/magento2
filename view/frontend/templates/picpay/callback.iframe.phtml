@@ -1,0 +1,35 @@
+<?php
+
+/** @var Picpay_Payment_Helper_Data $picpayHelper */
+$picpayHelper = Mage::helper("picpay_payment");
+
+$orderId    = Mage::getSingleton('checkout/session')->getLastRealOrderId();
+$order      = Mage::getSingleton('sales/order')->loadByIncrementId($orderId);
+$isSecure   = Mage::app()->getStore()->isCurrentlySecure();
+?>
+
+<div class="callback-iframe-content">
+    <?php if($picpayHelper->getMessageIframeCallback()): ?>
+        <?php echo $picpayHelper->getMessageIframeCallback();?>
+    <?php else: ?>
+        <p>Seu pedido foi aprovado.<br/>Confira os detalhes do seu pedido a seguir ...</p>
+
+        <?php if($order && $order->getId()): ?>
+            <script type="text/javascript">
+                setTimeout(function () {
+                    window.top.location.href = '<?php echo Mage::getUrl("sales/order/view", array('order_id' => $order->getId(), '_secure' => $isSecure)); ?>';
+                }, 2500);
+            </script>
+        <?php endif ?>
+    <?php endif; ?>
+</div>
+<style>
+    .callback-iframe-content {
+        padding: 100px 20px;
+        font-size: 16px;
+        text-align: center;
+    }
+    .callback-iframe-content * {
+        text-align: center;
+    }
+</style>

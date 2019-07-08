@@ -1,0 +1,63 @@
+<?php
+$incrementId = Mage::getSingleton('checkout/session')->getLastRealOrderId();
+
+/** @var Picpay_Payment_Helper_Data $picpayHelper */
+$picpayHelper = Mage::helper("picpay_payment");
+/** @var Mage_Sales_Model_Order $order */
+$order = Mage::getModel('sales/order')->loadByIncrementId($incrementId);
+?>
+
+<?php if($order && $order->getId()): ?>
+    <?php $isSecure = Mage::app()->getStore()->isCurrentlySecure(); ?>
+    <?php /** @var Mage_Sales_Model_Order_Payment $payment */ ?>
+    <?php $payment = $order->getPayment(); ?>
+
+    <?php if($paymentUrl = $payment->getAdditionalInformation("paymentUrl")): ?>
+        <?php $onpageWidth = $picpayHelper->getQrcodeOnpageWidth(); ?>
+        <?php $imageSize = $onpageWidth ? $onpageWidth : $picpayHelper::DEFAULT_QRCODE_WIDTH ; ?>
+        <p>
+            <?php echo $picpayHelper->generateQrCode($paymentUrl, $imageSize); ?>
+        </p>
+        <p>
+            <?php echo $picpayHelper->getMessageOnpageSuccess(); ?>
+        </p>
+
+        <script type="text/javascript">
+            <?php $explodedUrl = explode("/checkout/", $paymentUrl); ?>
+            <?php $transactionCode = end($explodedUrl); ?>
+            var checkUrl = "https://appws.picpay.com/ecommerce/checkout/qr-code?order=<?php echo $transactionCode; ?>&url=https%3A%2F%2Fapp.picpay.com%2Fcheckout%2F<?php echo $transactionCode; ?>";
+
+            var getJSON = function(url, callback) {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', url, true);
+                xhr.responseType = 'json';
+                xhr.onload = function() {
+                    var status = xhr.status;
+                    if (status === 200) {
+                        callback(null, xhr.response);
+                    } else {
+                        callback(status, xhr.response);
+                    }
+                };
+                xhr.send();
+            };
+
+            setInterval(function () {
+                getJSON(checkUrl, function(err, data) {
+                    if (err !== null) {
+                        console.log(err);
+                    } else {
+                        console.log(data);
+                        if( typeof data.status != "undefined"
+                            && typeof data.storeOrderId != "undefined"
+                            && data.status == "paid"
+                            && data.storeOrderId == "<?php echo $order->getIncrementId(); ?>"
+                        ) {
+                            window.location.href = '<?php echo Mage::getUrl("sales/order/view", array('order_id' => $order->getId(), '_secure' => $isSecure)); ?>';
+                        }
+                    }
+                });
+            }, 1500);
+        </script>
+    <?php endif; ?>
+<?php endif; ?>

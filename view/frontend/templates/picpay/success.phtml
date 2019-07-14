@@ -1,0 +1,78 @@
+<?php
+
+/**
+ * @var \Picpay\Payment\Block\Success $this
+ */
+
+
+/** @var \Picpay\Payment\Helper\Data $picpayHelper */
+$picpayHelper = $this->getHelper();
+
+/** @var \Magento\Sales\Model\Order $order */
+$order = $this->getOrder();
+
+$isSecure = $picpayHelper->isCurrentlySecure();
+?>
+
+<?php if($order && $order->getId()): ?>
+    <?php /** @var \Magento\Sales\Model\Order\Payment $payment */ ?>
+    <?php $payment = $order->getPayment(); ?>
+
+    <?php if($paymentUrl = $payment->getAdditionalInformation("paymentUrl")): ?>
+
+        <?php if($picpayHelper->isIframeMode()): ?>
+
+            <iframe src="<?php echo $paymentUrl ?>" style="<?php echo $picpayHelper->getIframeStyle(); ?>" />
+
+        <?php elseif ($picpayHelper->isOnpageMode()): ?>
+            <?php $qrcodeSource = $payment->getAdditionalInformation("qrcode"); ?>
+            <?php $onpageWidth = $picpayHelper->getQrcodeOnpageWidth(); ?>
+            <?php $imageSize = $onpageWidth ? $onpageWidth : $picpayHelper::DEFAULT_QRCODE_WIDTH ; ?>
+            <p>
+                <?php echo $picpayHelper->generateQrCode($qrcodeSource, $imageSize,  'margin-left: auto; margin-right: auto;'); ?>
+            </p>
+            <p>
+                <?php echo $picpayHelper->getMessageOnpageSuccess(); ?>
+            </p>
+
+            <script type="text/javascript">
+                <?php $explodedUrl = explode("/checkout/", $paymentUrl); ?>
+                <?php $transactionCode = end($explodedUrl); ?>
+                var checkUrl = "https://appws.picpay.com/ecommerce/checkout/qr-code?order=<?php echo $transactionCode; ?>&url=https%3A%2F%2Fapp.picpay.com%2Fcheckout%2F<?php echo $transactionCode; ?>";
+
+                var getJSON = function(url, callback) {
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('GET', url, true);
+                    xhr.responseType = 'json';
+                    xhr.onload = function() {
+                        var status = xhr.status;
+                        if (status === 200) {
+                            callback(null, xhr.response);
+                        } else {
+                            callback(status, xhr.response);
+                        }
+                    };
+                    xhr.send();
+                };
+
+                var interval = setInterval(function () {
+                    getJSON(checkUrl, function(err, data) {
+                        if (err !== null) {
+                            console.log(err);
+                        } else {
+                            if( typeof data.status != "undefined"
+                                && typeof data.storeOrderId != "undefined"
+                                && data.status == "paid"
+                                && data.storeOrderId == "<?php echo $order->getIncrementId(); ?>"
+                            ) {
+                                window.location.href = '<?php echo $this->getUrl("sales/order/view", array('order_id' => $order->getId(), '_secure' => $isSecure)); ?>';
+                                clearInterval(interval);
+                            }
+                        }
+                    });
+                }, 1500);
+            </script>
+
+        <?php endif; ?>
+    <?php endif; ?>
+<?php endif; ?>

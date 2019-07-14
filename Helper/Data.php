@@ -16,21 +16,21 @@ use Magento\Sales\Model\Service\InvoiceService;
 
 class Data extends AbstractHelper
 {
-    const API_URL       = "https://appws.picpay.com/ecommerce/public";
-    const MODULE_NAME   = "Picpay_Payment";
-    const ONPAGE_MODE   = 1;
-    const IFRAME_MODE   = 2;
+    const API_URL = "https://appws.picpay.com/ecommerce/public";
+    const MODULE_NAME = "Picpay_Payment";
+    const ONPAGE_MODE = 1;
+    const IFRAME_MODE = 2;
     const REDIRECT_MODE = 3;
 
-    const XML_PATH_SYSTEM_CONFIG    = "payment/picpay_standard";
-    const SUCCESS_PATH_URL          = "checkout/onepage/success";
-    const SUCCESS_IFRAME_PATH_URL   = "picpay/standard/success";
+    const XML_PATH_SYSTEM_CONFIG = "payment/picpay_standard";
+    const SUCCESS_PATH_URL = "sales/order/view";
+    const SUCCESS_IFRAME_PATH_URL = "picpay/standard/success";
 
     const PHTML_SUCCESS_PATH_ONPAGE = "picpay/success.qrcode.phtml";
     const PHTML_SUCCESS_PATH_IFRAME = "picpay/success.iframe.phtml";
 
-    const DEFAULT_QRCODE_WIDTH      = 150;
-    const DEFAULT_IFRAME_HEIGHT     = 300;
+    const DEFAULT_QRCODE_WIDTH = 150;
+    const DEFAULT_IFRAME_HEIGHT = 300;
 
     /**
      * Store
@@ -133,7 +133,8 @@ class Data extends AbstractHelper
         InvoiceSender $invoiceSender,
         InvoiceService $invoiceService,
         ManagerInterface $messageManager
-    ) {
+    )
+    {
         parent::__construct($context);
 
         $this->storeManager = $storeManager;
@@ -151,7 +152,7 @@ class Data extends AbstractHelper
         $this->invoiceSender = $invoiceSender;
         $this->invoiceService = $invoiceService;
 
-        if(is_null($this->_store)) {
+        if (is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
         }
     }
@@ -172,7 +173,7 @@ class Data extends AbstractHelper
      */
     public function getStoreConfig($path)
     {
-        return $this->scopeConfig->getValue( self::XML_PATH_SYSTEM_CONFIG . '/' . $path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE );
+        return $this->scopeConfig->getValue(self::XML_PATH_SYSTEM_CONFIG . '/' . $path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
     }
 
     /**
@@ -180,7 +181,7 @@ class Data extends AbstractHelper
      */
     public function getStore()
     {
-        if($this->_store) {
+        if ($this->_store) {
             return $this->_store;
         }
         return $this->_store = $this->storeManager->getStore();
@@ -285,8 +286,8 @@ class Data extends AbstractHelper
      */
     public function getVersion()
     {
-        return " - v".$this->moduleList
-            ->getOne(self::MODULE_NAME)['setup_version'];
+        return " - v" . $this->moduleList
+                ->getOne(self::MODULE_NAME)['setup_version'];
     }
 
     /**
@@ -402,20 +403,24 @@ class Data extends AbstractHelper
 
     /**
      * Get URL to return to store
+     * @var integer|string $orderId
      */
-    public function getReturnUrl()
+    public function getReturnUrl($orderId = false)
     {
         $isSecure = $this->storeManager->getStore()->isCurrentlySecure();
 
-        if($this->isIframeMode()) {
+        if ($this->isIframeMode()) {
             return $this->urlBuilder->getUrl(
                 self::SUCCESS_IFRAME_PATH_URL,
-                array("_secure" => $this->isCurrentlySecure())
+                ["_secure" => $this->isCurrentlySecure()]
             );
         }
         return $this->urlBuilder->getUrl(
             self::SUCCESS_PATH_URL,
-            array("_secure" => $this->isCurrentlySecure())
+            [
+                "order_id" => $orderId,
+                "_secure" => $this->isCurrentlySecure()
+            ]
         );
     }
 
@@ -434,8 +439,8 @@ class Data extends AbstractHelper
      * Validate a HTTP Request Authorization
      *
      * @param Magento\Framework\App\Request\Http $request
-     * @throws \Exception
      * @return bool
+     * @throws \Exception
      */
     public function validateAuth($request)
     {
@@ -459,7 +464,7 @@ class Data extends AbstractHelper
      */
     public function log($data)
     {
-        if($this->getStoreConfig("debug")) {
+        if ($this->getStoreConfig("debug")) {
             $this->logger->debug($data);
         }
     }
@@ -487,10 +492,10 @@ class Data extends AbstractHelper
             $this->curl->setConfig([
                 'verifypeer' => false,
                 'verifyhost' => false,
-                'timeout'    => $timeout
+                'timeout' => $timeout
             ]);
 
-            $this->log("JSON sent to PicPay API. URL: ".$url);
+            $this->log("JSON sent to PicPay API. URL: " . $url);
             $this->log((is_array($fields) ? \json_encode($fields) : $fields));
 
             $this->curl->write($type,
@@ -508,13 +513,13 @@ class Data extends AbstractHelper
             $httpCode = \Zend_Http_Response::extractCode($response);
 
             if ($httpCode != 200 && $httpCode == 201) {
-                return array (
+                return array(
                     'success' => 0,
                     'return' => $response
                 );
             } else {
                 $response = \Zend_Http_Response::extractBody($response);
-                return array (
+                return array(
                     'success' => 1,
                     'return' => \json_decode(trim($response), true)
                 );
@@ -523,12 +528,11 @@ class Data extends AbstractHelper
 //                'success' => 1,
 //                'return' => []
 //            );
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             $this->log("ERROR on requesting API: " . $e->getMessage());
             $this->logger->critical($e);
 
-            return array (
+            return array(
                 'success' => 0,
                 'return' => $e->getMessage()
             );
@@ -541,7 +545,8 @@ class Data extends AbstractHelper
      * @param \Magento\Payment\Gateway\Data\Order\OrderAdapter $order
      * @return array
      */
-    public function getBuyer($order) {
+    public function getBuyer($order)
+    {
         /** @var \Magento\Payment\Gateway\Data\Order\AddressAdapter $billingAddress */
         $billingAddress = $order->getBillingAddress();
 
@@ -549,7 +554,7 @@ class Data extends AbstractHelper
         $customer = $this->customerRepositoryInterface->getById($customerId);
 
         $taxvat = false;
-        if($customer && $customer->getId()) {
+        if ($customer && $customer->getId()) {
             $taxvat = $customer->getTaxvat();
         }
 
@@ -561,10 +566,10 @@ class Data extends AbstractHelper
 
         return array(
             "firstName" => $buyerFirstname,
-            "lastName"  => $buyerLastname,
-            "document"  => $buyerDocument,
-            "email"     => $buyerEmail,
-            "phone"     => $buyerPhone
+            "lastName" => $buyerLastname,
+            "document" => $buyerDocument,
+            "email" => $buyerEmail,
+            "phone" => $buyerPhone
         );
     }
 
@@ -599,13 +604,13 @@ class Data extends AbstractHelper
             return implode(" ", array(
                 'country' => "+55",
                 'area' => (string)substr($originalPhone, 0, 2),
-                'number'=> (string)substr($originalPhone, 2, 9),
+                'number' => (string)substr($originalPhone, 2, 9),
             ));
         }
         return implode(" ", array(
             'country' => "+55",
             'area' => (string)substr($originalPhone, 0, 2),
-            'number'=> (string)substr($originalPhone, 2, 9),
+            'number' => (string)substr($originalPhone, 2, 9),
         ));
     }
 
@@ -646,16 +651,17 @@ class Data extends AbstractHelper
      * @param Mage_Sales_Model_Order $order
      * @return false|string
      */
-    public function getExpiresAt($order) {
+    public function getExpiresAt($order)
+    {
         $createdAt = date("Y-m-d H:i:s");
-        if($order instanceof Order) {
+        if ($order instanceof Order) {
             $createdAt = $order->getCreatedAt();
         }
         $createdAtTime = \strtotime($createdAt);
 
-        $days = (int) $this->getStoreConfig("days_to_expires");
+        $days = (int)$this->getStoreConfig("days_to_expires");
 
-        if(is_numeric($days) && (int) $days > 0) {
+        if (is_numeric($days) && (int)$days > 0) {
             $createdAtTime += ($days * 86400);
         }
 
@@ -695,20 +701,16 @@ class Data extends AbstractHelper
      */
     protected function _processRefundOrder($order, $authorizationId)
     {
-        if($order->canUnhold()) {
+        if ($order->canUnhold()) {
             $order->unhold();
         }
 
-        if($order->canCancel()) {
+        if ($order->canCancel()) {
             $order->cancel();
         }
 
         $invoices = array();
         foreach ($order->getInvoiceCollection() as $invoice) {
-//            echo (int) $invoice->canRefund();
-//            echo "\n";
-//            echo $invoice->getId();
-//            echo "\n";
             if ($invoice->canRefund()) {
                 $invoices[] = $invoice;
             }
@@ -742,7 +744,7 @@ class Data extends AbstractHelper
      */
     protected function _processPaidOrder($order, $authorizationId)
     {
-        if($order->getBaseTotalDue() <= 0) {
+        if ($order->getBaseTotalDue() <= 0) {
             return false;
         }
 
@@ -774,7 +776,7 @@ class Data extends AbstractHelper
         $invoice->getOrder()->setIsInProcess(true);
 
         $order->addStatusHistoryComment(
-            __("Order invoiced by API notification. Authorization Id: ".$authorizationId),
+            __("Order invoiced by API notification. Authorization Id: " . $authorizationId),
             false
         );
 
@@ -795,7 +797,7 @@ class Data extends AbstractHelper
 
         /** @var \Magento\Sales\Model\Order\Status $status */
         $status = $this->salesOrderStatusFactory->create()->loadDefaultByState("processing");
-        if($status) {
+        if ($status) {
             $order->setStatus($status->getStatus());
         }
 
@@ -804,9 +806,9 @@ class Data extends AbstractHelper
 
     public function generateQrCode($dataText, $imageWidth = 200, $style = "")
     {
-        if(is_array($dataText)) {
+        if (is_array($dataText)) {
             $dataText = $dataText['base64'];
         }
-        return '<img src="'.$dataText.'" width="'.$imageWidth.'" style="'.$style.'"/>';
+        return '<img src="' . $dataText . '" width="' . $imageWidth . '" style="' . $style . '"/>';
     }
 }

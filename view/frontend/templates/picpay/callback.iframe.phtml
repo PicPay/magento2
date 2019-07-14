@@ -1,11 +1,16 @@
 <?php
+/**
+ * @var \Picpay\Payment\Block\Success $this
+ */
 
-/** @var Picpay_Payment_Helper_Data $picpayHelper */
-$picpayHelper = Mage::helper("picpay_payment");
 
-$orderId    = Mage::getSingleton('checkout/session')->getLastRealOrderId();
-$order      = Mage::getSingleton('sales/order')->loadByIncrementId($orderId);
-$isSecure   = Mage::app()->getStore()->isCurrentlySecure();
+/** @var \Picpay\Payment\Helper\Data $picpayHelper */
+$picpayHelper = $this->getHelper();
+
+/** @var \Magento\Sales\Model\Order $order */
+$order = $this->getOrder();
+
+$isSecure = $picpayHelper->isCurrentlySecure();
 ?>
 
 <div class="callback-iframe-content">
@@ -17,7 +22,7 @@ $isSecure   = Mage::app()->getStore()->isCurrentlySecure();
         <?php if($order && $order->getId()): ?>
             <script type="text/javascript">
                 setTimeout(function () {
-                    window.top.location.href = '<?php echo Mage::getUrl("sales/order/view", array('order_id' => $order->getId(), '_secure' => $isSecure)); ?>';
+                    window.top.location.href = '<?php echo $this->getUrl("sales/order/view", array('order_id' => $order->getId(), '_secure' => $isSecure)); ?>';
                 }, 2500);
             </script>
         <?php endif ?>

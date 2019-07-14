@@ -1,6 +1,11 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+
+    <type name="Magento\Sales\Block\Adminhtml\Order\View">
+        <plugin name="addMyButton" type="Picpay\Payment\Block\Plugin\Adminhtml\Order\View"/>
+    </type>
+
     <!-- Payment Method Facade configuration -->
     <virtualType name="PicPayStandardFacade" type="Magento\Payment\Model\Method\Adapter">
         <arguments>
@@ -36,6 +41,7 @@
     <virtualType name="PicPayStandardCommandPool" type="Magento\Payment\Gateway\Command\CommandPool">
         <arguments>
             <argument name="commands" xsi:type="array">
+                <item name="initialize" xsi:type="string">Picpay\Payment\Gateway\Command\InitializeCommand</item>
                 <item name="authorize" xsi:type="string">PicPayStandardAuthorizeCommand</item>
                 <item name="capture" xsi:type="string">Picpay\Payment\Gateway\Command\DoNothingCommand</item>
                 <item name="void" xsi:type="string">PicPayStandardVoidCommand</item>

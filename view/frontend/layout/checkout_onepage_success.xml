@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <body>
+        <referenceContainer name="order.success.additional.info">
+            <block class="Picpay\Payment\Block\Success"
+                   name="picpay.order.success"
+                   template="Picpay_Payment::picpay/success.phtml"
+                   after="-">
+            </block>
+        </referenceContainer>
+    </body>
+</page>

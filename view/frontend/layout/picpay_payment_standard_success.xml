@@ -1,13 +1,11 @@
 <?xml version="1.0"?>
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
     <body>
-        <!--<reference name="root">-->
-            <!--<action method="setTemplate">-->
-                <!--<argument name="template" xsi:type="string">Picpay_Payment::page/empty.phtml</argument>-->
-            <!--</action>-->
-        <!--</reference>-->
         <referenceContainer name="content">
-            <block template="Picpay_Payment::picpay/callback.iframe.phtml" class="Magento\Framework\View\Element\Template" name="picpay.success.callback"/>
+            <block
+                    template="Picpay_Payment::picpay/callback.iframe.phtml"
+                    class="Picpay\Payment\Block\Success"
+                    name="picpay.success.callback"/>
         </referenceContainer>
     </body>
 </page>

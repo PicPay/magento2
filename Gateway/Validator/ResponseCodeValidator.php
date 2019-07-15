@@ -8,7 +8,6 @@ use Picpay\Payment\Gateway\Http\Client\ClientMock;
 
 class ResponseCodeValidator extends AbstractValidator
 {
-    const RESULT_CODE = 'RESULT_CODE';
 
     /**
      * Performs validation of result code
@@ -22,7 +21,7 @@ class ResponseCodeValidator extends AbstractValidator
             throw new \InvalidArgumentException('Response does not exist');
         }
         $response = $validationSubject['response'];
-        if ($this->isSuccessfulTransaction($response)) {
+        if ($response['success'] == 1) {
             return $this->createResult(
                 true,
                 []
@@ -33,15 +32,5 @@ class ResponseCodeValidator extends AbstractValidator
                 [__('Gateway rejected the transaction.')]
             );
         }
-    }
-
-    /**
-     * @param array $response
-     * @return bool
-     */
-    private function isSuccessfulTransaction(array $response)
-    {
-        return isset($response[self::RESULT_CODE])
-            && $response[self::RESULT_CODE] !== ClientMock::FAILURE;
     }
 }

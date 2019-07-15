@@ -53,12 +53,18 @@ class AuthorizationRequest implements BuilderInterface
 
         $version = $this->picpay->getVersion();
         $expiresAt = $this->picpay->getExpiresAt($order);
+        $incrementId = $order->getOrderIncrementId();
+        /**
+         * @todo pegar
+         * order id
+         */
+        $orderId = $order->getId();
 
         return [
             'TXN_TYPE'      => 'A',
-            'referenceId'   => $order->getOrderIncrementId(),
+            'referenceId'   => $incrementId,
             'callbackUrl'   => $this->picpay->getCallbackUrl(),
-            'returnUrl'     => $this->picpay->getReturnUrl(),
+            'returnUrl'     => $this->picpay->getReturnUrl($orderId),
             'value'         => round($order->getGrandTotalAmount(), 2),
             'buyer'         => $this->picpay->getBuyer($order),
             'plugin'        => "Magento 2". $version,

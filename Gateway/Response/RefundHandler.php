@@ -29,6 +29,8 @@ class RefundHandler implements HandlerInterface
         if($response["success"] == 1) {
             if(isset($response["return"]["cancellationId"])) {
                 $payment->setAdditionalInformation("cancellationId", $response["return"]["cancellationId"]);
+                $payment->setIsTransactionClosed(true);
+                $payment->setShouldCloseParentTransaction(true);
             }
         }
         else {

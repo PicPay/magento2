@@ -21,9 +21,14 @@ class TxnIdHandler implements HandlerInterface
         ) {
             throw new \InvalidArgumentException('Payment data object should be provided');
         }
+
         /** @var PaymentDataObjectInterface $paymentDO */
         $paymentDO = $handlingSubject['payment'];
         $payment = $paymentDO->getPayment();
+
+        $payment->setIsTransactionPending(true);
+        $payment->getOrder()->setCanSendNewEmailFlag(true);
+
         /** @var $payment \Magento\Sales\Model\Order\Payment */
         $payment->setTransactionId($response["return"]["referenceId"]);
         $payment->setIsTransactionClosed(false);

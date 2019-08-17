@@ -59,10 +59,19 @@ class Index extends \Magento\Backend\App\Action
         }
 
         $authorizationId = $order->getPayment()->getAdditionalInformation("authorizationId");
+        
+        if(isset($return['return']['authorizationId'])
+            && $authorizationId != $return['return']['authorizationId']
+        ) {
+            $authorizationId = $return["return"]["authorizationId"];
+            $payment = $order->getPayment();
+            $payment->setAdditionalInformation("authorizationId", $authorizationId);
+            $payment->save();
+        }
 
         $helper->updateOrder($order, $return, $authorizationId);
 
-        $this->messageManager->addSuccessMessage(__('Sync Successfully.'));
+        $this->messageManager->addSuccessMessage(__('Sync Successfully'));
 
         return $this->_redirect('sales/order/view', ['_current' => true, 'order_id' => $orderId]);
     }

@@ -24,6 +24,7 @@ class Data extends AbstractHelper
 
     const XML_PATH_SYSTEM_CONFIG = "payment/picpay_standard";
     const SUCCESS_PATH_URL = "sales/order/view";
+    const SUCCESS_HISTORY_PATH_URL = "sales/order/history";
     const SUCCESS_IFRAME_PATH_URL = "picpay/standard/success";
 
     const PHTML_SUCCESS_PATH_ONPAGE = "picpay/success.qrcode.phtml";
@@ -416,7 +417,7 @@ class Data extends AbstractHelper
             );
         }
         return $this->urlBuilder->getUrl(
-            self::SUCCESS_PATH_URL,
+            self::SUCCESS_HISTORY_PATH_URL,
             [
                 "order_id" => $orderId,
                 "_secure" => $this->isCurrentlySecure()

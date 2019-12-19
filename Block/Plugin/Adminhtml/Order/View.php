@@ -25,20 +25,23 @@ class View
      */
     public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\View $view)
     {
-        $message =__('Are you sure you want to Sync Picpay Transaction?');
-
-        $url = $this->urlBuilder->getUrl(
-            'picpay_payment/consult/index',
-            ['order_id' => $view->getOrderId()]
-        );
-
-        $view->addButton(
-            'picpay_sync',
-            [
-                'label' => __('Sync Picpay Transaction'),
-                'class' => 'go',
-                'onclick' => "confirmSetLocation('{$message}', '{$url}')"
-            ]
-        );
+        $isPicpay = $view->getOrder()->getPayment()->getMethod() == \Picpay\Payment\Model\Ui\ConfigProvider::CODE;
+    
+        if($isPicpay) {
+            $message = __('Are you sure you want to Sync Picpay Transaction?');
+            $url = $this->urlBuilder->getUrl(
+                'picpay_payment/consult/index',
+                ['order_id' => $view->getOrderId()]
+            );
+    
+            $view->addButton(
+                'picpay_sync',
+                [
+                    'label' => __('Sync Picpay Transaction'),
+                    'class' => 'go',
+                    'onclick' => "confirmSetLocation('{$message}', '{$url}')"
+                ]
+            );
+        }
     }
 }

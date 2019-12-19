@@ -2,17 +2,29 @@
 
 namespace Picpay\Payment\Helper;
 
+use Magento\Backend\Model\Session;
 use Magento\Config\Model\Config\Backend\Admin\Custom;
 use Magento\Customer\Api\CustomerRepositoryInterface;
+use Magento\Eav\Model\ConfigFactory;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute;
+use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory;
 use Magento\Framework\App\Helper\AbstractHelper;
-use Magento\Framework\UrlInterface;
-use Magento\Framework\Module\ModuleListInterface;
-use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\DB\TransactionFactory;
 use Magento\Framework\HTTP\Adapter\Curl;
+use Magento\Framework\Message\ManagerInterface;
+use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Sales\Api\RefundInvoiceInterface;
 use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order\CreditmemoFactory;
 use Magento\Sales\Model\Order\Email\Sender\InvoiceSender;
+use Magento\Sales\Model\Order\Invoice;
+use Magento\Sales\Model\Order\StatusFactory;
+use Magento\Sales\Model\Service\CreditmemoService;
 use Magento\Sales\Model\Service\InvoiceService;
+use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
 
 class Data extends AbstractHelper
 {
@@ -113,19 +125,40 @@ class Data extends AbstractHelper
      * @var \Magento\Sales\Model\Service\InvoiceService
      */
     protected $invoiceService;
-
+    
     /**
-     * Construtor
+     * Data constructor.
+     *
+     * @param Context                     $context
+     * @param StoreManagerInterface       $storeManager
+     * @param ConfigFactory               $eavConfigFactory
+     * @param CollectionFactory           $eavResourceModelEntityAttributeCollectionFactory
+     * @param LoggerInterface             $logger
+     * @param Session                     $backendSession
+     * @param TransactionFactory          $transactionFactory
+     * @param StatusFactory               $salesOrderStatusFactory
+     * @param UrlInterface                $urlBuilder
+     * @param ModuleListInterface         $moduleList
+     * @param CustomerRepositoryInterface $customerRepositoryInterface
+     * @param Curl                        $curl
+     * @param RefundInvoiceInterface      $refundInvoice
+     * @param InvoiceSender               $invoiceSender
+     * @param InvoiceService              $invoiceService
+     * @param ManagerInterface            $messageManager
+     * @param CreditmemoFactory           $creditmemoFactory
+     * @param CreditmemoService           $creditmemoService
+     * @param Invoice                     $invoice
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     public function __construct(
-        \Magento\Framework\App\Helper\Context $context,
-        \Magento\Store\Model\StoreManagerInterface $storeManager,
-        \Magento\Eav\Model\ConfigFactory $eavConfigFactory,
-        \Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory $eavResourceModelEntityAttributeCollectionFactory,
-        \Psr\Log\LoggerInterface $logger,
-        \Magento\Backend\Model\Session $backendSession,
-        \Magento\Framework\DB\TransactionFactory $transactionFactory,
-        \Magento\Sales\Model\Order\StatusFactory $salesOrderStatusFactory,
+        Context $context,
+        StoreManagerInterface $storeManager,
+        ConfigFactory $eavConfigFactory,
+        CollectionFactory $eavResourceModelEntityAttributeCollectionFactory,
+        LoggerInterface $logger,
+        Session $backendSession,
+        TransactionFactory $transactionFactory,
+        StatusFactory $salesOrderStatusFactory,
         UrlInterface $urlBuilder,
         ModuleListInterface $moduleList,
         CustomerRepositoryInterface $customerRepositoryInterface,
@@ -133,9 +166,11 @@ class Data extends AbstractHelper
         RefundInvoiceInterface $refundInvoice,
         InvoiceSender $invoiceSender,
         InvoiceService $invoiceService,
-        ManagerInterface $messageManager
-    )
-    {
+        ManagerInterface $messageManager,
+        CreditmemoFactory $creditmemoFactory,
+        CreditmemoService $creditmemoService,
+        Invoice $invoice
+    ) {
         parent::__construct($context);
 
         $this->storeManager = $storeManager;
@@ -152,7 +187,10 @@ class Data extends AbstractHelper
         $this->invoiceRefunder = $refundInvoice;
         $this->invoiceSender = $invoiceSender;
         $this->invoiceService = $invoiceService;
-
+        $this->creditmemoFactory = $creditmemoFactory;
+        $this->creditmemoService = $creditmemoService;
+        $this->invoice = $invoice;
+    
         if (is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
         }
@@ -710,30 +748,20 @@ class Data extends AbstractHelper
             $order->cancel();
         }
 
-        $invoices = array();
+        $invoiceIncrementId = false;
         foreach ($order->getInvoiceCollection() as $invoice) {
-            if ($invoice->canRefund()) {
-                $invoices[] = $invoice;
-            }
+            $invoiceIncrementId = $invoice->getIncrementId();
         }
-
-        /**
-         * @var Order\Invoice
-         */
-        foreach ($invoices as $invoice) {
-
-            /**
-             * @var \Magento\Sales\Api\RefundInvoiceInterface $invoiceRefunder
-             */
-            $this->invoiceRefunder->execute(
-                $invoice->getId(),
-                [],
-                false,
-                false,
-                __("Refunded by notification")
-            );
+        
+        if ($invoiceIncrementId) {
+            $invoiceObj = $this->invoice->loadByIncrementId($invoiceIncrementId);
+            $creditMemo = $this->creditmemoFactory->createByOrder($order);
+    
+            $creditMemo->setInvoice($invoiceObj);
+            $this->creditmemoService->refund($creditMemo);
+    
+            $order->save();
         }
-        $order->save();
     }
 
     /**

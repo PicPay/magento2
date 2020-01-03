@@ -13,6 +13,7 @@
             <argument name="formBlockType" xsi:type="string">Magento\Payment\Block\Form</argument>
             <argument name="infoBlockType" xsi:type="string">\Picpay\Payment\Block\Info</argument>
             <argument name="valueHandlerPool" xsi:type="object">PicPayStandardValueHandlerPool</argument>
+            <argument name="validatorPool" xsi:type="object">PicPayStandardValidatorPool</argument>
             <argument name="commandPool" xsi:type="object">PicPayStandardCommandPool</argument>
         </arguments>
     </virtualType>
@@ -159,5 +160,23 @@
             <argument name="config" xsi:type="object">PicPayStandardConfig</argument>
         </arguments>
     </type>
+
+    <virtualType name="PicPayStandardValidatorPool" type="Magento\Payment\Gateway\Validator\ValidatorPool">
+        <arguments>
+            <argument name="validators" xsi:type="array">
+                <item name="country" xsi:type="string">PicPayStandardCountryValidator</item>
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PicPayStandardCountryValidator" type="Magento\Payment\Gateway\Validator\CountryValidator">
+        <arguments>
+            <argument name="config" xsi:type="object">PicPayStandardConfig</argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="PicPayStandardConfig" type="Magento\Payment\Gateway\Config\Config">
+        <arguments>
+            <argument name="methodCode" xsi:type="const">\Picpay\Payment\Model\Ui\ConfigProvider::CODE</argument>
+        </arguments>
+    </virtualType>
 
 </config>

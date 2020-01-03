@@ -181,11 +181,12 @@ class Observer extends \Magento\Framework\Event\Observer
 
         $block = $observer->getEvent()->getBlock();
         if ($block instanceof \Magento\Sales\Block\Adminhtml\Order\View) {
-            $message = __('Are you sure you want to Sync Picpay Transaction?');
-
             $order = $this->registry->registry("sales_order");
-
-            if($order && $order->getId()) {
+            $isPicpay = $order->getPayment()->getMethod() == \Picpay\Payment\Model\Ui\ConfigProvider::CODE;
+    
+            /** @var \Magento\Sales\Model\Order $order */
+            if($order && $order->getId() && $isPicpay) {
+                $message = __('Are you sure you want to Sync Picpay Transaction?');
                 $block->addButton('picpay_sync',
                     array(
                         'label' => __('Sync Picpay Transaction'),

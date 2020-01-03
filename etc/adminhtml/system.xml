@@ -108,6 +108,7 @@
                        showInDefault="1"
                        showInWebsite="1" showInStore="1">
                     <label>Payment from applicable countries</label>
+                    <config_path>payment/picpay_standard/allowspecific</config_path>
                     <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
                     <comment>If set to specific, guest customers will not have a billing country and may not be able to checkout.</comment>
                 </field>
@@ -117,6 +118,7 @@
                        showInWebsite="1"
                        showInStore="1">
                     <label>Payment from Specific countries</label>
+                    <config_path>payment/picpay_standard/specificcountry</config_path>
                     <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
                     <depends>
                         <field id="*/*/allowspecific">1</field>

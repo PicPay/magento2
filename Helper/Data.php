@@ -588,18 +588,22 @@ class Data extends AbstractHelper
     {
         /** @var \Magento\Payment\Gateway\Data\Order\AddressAdapter $billingAddress */
         $billingAddress = $order->getBillingAddress();
-
-        $customerId = $order->getCustomerId();
-        $customer = $this->customerRepositoryInterface->getById($customerId);
-
         $taxvat = false;
-        if ($customer && $customer->getId()) {
-            $taxvat = $customer->getTaxvat();
+
+        if(!$order->getCustomerIsGuest()){
+            $customerId = $order->getCustomerId();
+            $customer = $this->customerRepositoryInterface->getById($customerId);
+            if ($customer && $customer->getId()) {
+                $taxvat = $customer->getTaxvat();
+            }
+        }
+        else{
+            $taxvat = $billingAddress->getVatId();
         }
 
         $buyerFirstname = $billingAddress->getFirstname();
         $buyerLastname = $billingAddress->getLastname();
-        $buyerDocument = $taxvat;
+        $buyerDocument = $this->_formatTaxVat($taxvat);
         $buyerEmail = $billingAddress->getEmail();
         $buyerPhone = $this->_extractPhone($billingAddress->getTelephone());
 
@@ -620,6 +624,22 @@ class Data extends AbstractHelper
     protected function _getTelephoneAttribute()
     {
         return $this->getStoreConfig("address_telephone_attribute");
+    }
+
+    /**
+     * Returns Tax Vat formatted
+     *
+     * @param string $taxvat
+     * @return string
+     */
+
+    private function _formatTaxVat($taxvat){
+        $formatado = substr($taxvat, 0, 3) . '.';
+        $formatado .= substr($taxvat, 3, 3) . '.';
+        $formatado .= substr($taxvat, 6, 3) . '-';
+        $formatado .= substr($taxvat, 9, 2) . '';
+
+        return $formatado;
     }
 
     /**

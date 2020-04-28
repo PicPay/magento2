@@ -2,11 +2,14 @@
 
 namespace Picpay\Payment\Controller\Notification;
 
+use Magento\Framework\App\CsrfAwareActionInterface;
+use Magento\Framework\App\Request\InvalidRequestException;
+use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Sales\Model\Order;
 use Magento\TestFramework\Event\Magento;
 
-class Index extends \Magento\Framework\App\Action\Action
+class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
     /**
      * @var \Psr\Log\LoggerInterface
@@ -127,6 +130,10 @@ class Index extends \Magento\Framework\App\Action\Action
         $authorizationId = $request->get("authorizationId");
         $resultPage = $this->resultJsonFactory->create();
 
+        
+        $response = ['success' => false];
+        $resultPage->setData($response);
+
         if (!$this->getHelper()->isNotificationEnabled()) {
             return $resultPage->setHttpResponseCode(403);
         }
@@ -148,6 +155,10 @@ class Index extends \Magento\Framework\App\Action\Action
         try {
             $return = $this->consultRequest($order);
             if (isset($return["return"]["status"])) {
+
+        $response = ['success' => true];
+        $resultPage->setData($response);
+
                 $this->getHelper()->updateOrder($order, $return, $authorizationId);
             } else {
                 return $resultPage->setHttpResponseCode(400);
@@ -178,4 +189,32 @@ class Index extends \Magento\Framework\App\Action\Action
         }
         return false;
     }
+
+
+    /**
+     * Create exception in case CSRF validation failed.
+     * Return null if default exception will suffice.
+     *
+     * @param RequestInterface $request
+     *
+     * @return InvalidRequestException|null
+     */
+    public function createCsrfValidationException(RequestInterface $request):InvalidRequestException
+    {
+        return null;
+    }
+    
+    /**
+     * Perform custom request validation.
+     * Return null if default validation is needed.
+     *
+     * @param RequestInterface $request
+     *
+     * @return bool|null
+     */
+    public function validateForCsrf(RequestInterface $request): bool
+    {
+        return true;
+    }
+
 }

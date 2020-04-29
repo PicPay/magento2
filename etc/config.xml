@@ -7,8 +7,7 @@
                 <model>PicPayStandardFacade</model>
                 <title>Picpay</title>
                 <mode>2</mode>
-                <allowspecific>1</allowspecific>
-                <specificcountry>BR</specificcountry>
+                <allowspecific>0</allowspecific>
                 <notification>1</notification>
                 <use_custom_form>0</use_custom_form>
                 <order_status>pending</order_status>
@@ -26,7 +25,6 @@
                 <is_gateway>1</is_gateway>
                 <payment_action>authorize</payment_action>
                 <days_to_expires>3</days_to_expires>
-                <debug>0</debug>
             </picpay_standard>
         </payment>
     </default>

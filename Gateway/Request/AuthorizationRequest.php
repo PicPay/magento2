@@ -6,6 +6,7 @@ use Magento\Payment\Gateway\ConfigInterface;
 use Magento\Payment\Gateway\Data\PaymentDataObjectInterface;
 use Magento\Payment\Gateway\Request\BuilderInterface;
 use Picpay\Payment\Helper\Data as Picpay;
+use Psr\Log\LoggerInterface;
 
 class AuthorizationRequest implements BuilderInterface
 {
@@ -19,15 +20,19 @@ class AuthorizationRequest implements BuilderInterface
      */
     private $picpay;
 
+    protected $logger;
+
     /**
      * @param ConfigInterface $config
      * @param Picpay $picpay
      */
     public function __construct(
         ConfigInterface $config,
-        Picpay $picpay
+        Picpay $picpay,
+        LoggerInterface $logger
     )
     {
+        $this->logger = $logger;
         $this->config = $config;
         $this->picpay = $picpay;
     }

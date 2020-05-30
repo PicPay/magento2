@@ -590,14 +590,15 @@ class Data extends AbstractHelper
         $billingAddress = $order->getBillingAddress();
         $taxvat = false;
 
-        if(!$order->getCustomerIsGuest()){
-            $customerId = $order->getCustomerId();
+        $customerId = $order->getCustomerId();
+        if ($customerId) {
             $customer = $this->customerRepositoryInterface->getById($customerId);
             if ($customer && $customer->getId()) {
                 $taxvat = $customer->getTaxvat();
             }
         }
-        else{
+
+        if(!$taxvat){
             $taxvat = $billingAddress->getVatId();
         }
 

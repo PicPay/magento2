@@ -125,7 +125,7 @@ class Data extends AbstractHelper
      * @var \Magento\Sales\Model\Service\InvoiceService
      */
     protected $invoiceService;
-    
+
     /**
      * Data constructor.
      *
@@ -190,7 +190,7 @@ class Data extends AbstractHelper
         $this->creditmemoFactory = $creditmemoFactory;
         $this->creditmemoService = $creditmemoService;
         $this->invoice = $invoice;
-    
+
         if (is_null($this->_store)) {
             $this->_store = $this->storeManager->getStore();
         }
@@ -581,10 +581,13 @@ class Data extends AbstractHelper
     /**
      * Get buyer object from Order
      *
-     * @param \Magento\Payment\Gateway\Data\Order\OrderAdapter $order
+     * @param $order
+     * @param null|\Magento\Quote\Model\Quote $quote
      * @return array
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
-    public function getBuyer($order)
+    public function getBuyer($order, $quote = null)
     {
         /** @var \Magento\Payment\Gateway\Data\Order\AddressAdapter $billingAddress */
         $billingAddress = $order->getBillingAddress();
@@ -598,8 +601,12 @@ class Data extends AbstractHelper
             }
         }
 
-        if(!$taxvat){
-            $taxvat = $billingAddress->getVatId();
+        if (!$taxvat && $quote) {
+            /** @var \Magento\Quote\Model\Quote $quote */
+            $addressObj = $quote->getBillingAddress();
+            if ($addressObj && $addressObj->getId()) {
+                $taxvat = $addressObj->getVatId();
+            }
         }
 
         $buyerFirstname = $billingAddress->getFirstname();
@@ -773,14 +780,14 @@ class Data extends AbstractHelper
         foreach ($order->getInvoiceCollection() as $invoice) {
             $invoiceIncrementId = $invoice->getIncrementId();
         }
-        
+
         if ($invoiceIncrementId) {
             $invoiceObj = $this->invoice->loadByIncrementId($invoiceIncrementId);
             $creditMemo = $this->creditmemoFactory->createByOrder($order);
-    
+
             $creditMemo->setInvoice($invoiceObj);
             $this->creditmemoService->refund($creditMemo);
-    
+
             $order->save();
         }
     }

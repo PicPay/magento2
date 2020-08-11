@@ -179,5 +179,4 @@
         </arguments>
     </virtualType>
 
-    <preference for="Magento\Payment\Gateway\Data\Order\AddressAdapter" type="Picpay\Payment\Rewrite\Magento\Payment\Gateway\Data\Order\AddressAdapter"/>
 </config>

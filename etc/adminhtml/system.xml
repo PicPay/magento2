@@ -63,9 +63,9 @@
                 <field id="seller_token" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
                     <label>API Seller Token</label>
                 </field>
-                <field id="days_to_expires" translate="label" type="text" sortOrder="115" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Days to expires</label>
-                    <comment>Days to expires the transaction. Just numbers.</comment>
+                <field id="hours_to_expires" translate="label" type="text" sortOrder="115" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>Hours to expires</label>
+                    <comment>Hours to expires the transaction. Just numbers.</comment>
                     <validate>validate-number validate-zero-or-greater</validate>
                 </field>
                 <field id="order_status" translate="label comment" type="select" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">

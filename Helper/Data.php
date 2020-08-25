@@ -726,10 +726,10 @@ class Data extends AbstractHelper
         }
         $createdAtTime = \strtotime($createdAt);
 
-        $days = (int)$this->getStoreConfig("days_to_expires");
+        $hours = (int)$this->getStoreConfig("hours_to_expires");
 
-        if (is_numeric($days) && (int)$days > 0) {
-            $createdAtTime += ($days * 86400);
+        if (is_numeric($hours) && (int)$hours > 0) {
+            $createdAtTime += ($hours * 3600);
         }
 
         return \date("c", $createdAtTime);

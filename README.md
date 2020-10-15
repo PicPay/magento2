@@ -18,7 +18,7 @@ Open new issue [https://github.com/PicPay/magento2/issues](https://github.com/Pi
 
 Use composer:
 ```
-composer require picpay/magento2
+composer require picpay/magento2:dev-master
 ```
 
 After:

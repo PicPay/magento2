@@ -36,3 +36,8 @@
 "Set the sequence number of this payment method in the checkout. Payment methods with a higher sort order number will be displayed lower in the list.","Set the sequence number of this payment method in the checkout. Payment methods with a higher sort order number will be displayed lower in the list."
 "Enable with want build a custom HTML form in Checkout","Enable with want build a custom HTML form in Checkout"
 "Accept html. The extension has a default message on checkout.","Accept html. The extension has a default message on checkout."
+"Not familiar with PicPay ?","Not familiar with PicPay ?"
+"Click here","Click here"
+" and download now to make your payment."," and download now to make your payment."
+"Your order has been approved.","Your order has been approved."
+"Check your order details below...","Check your order details below..."

@@ -17,7 +17,7 @@ $isSecure = $picpayHelper->isCurrentlySecure();
     <?php if($picpayHelper->getMessageIframeCallback()): ?>
         <?php echo $picpayHelper->getMessageIframeCallback();?>
     <?php else: ?>
-        <p>Seu pedido foi aprovado.<br/>Confira os detalhes do seu pedido a seguir ...</p>
+        <p><?php echo __('Your order has been approved.')?><br/><?php echo __('Check your order details below...')?></p>
 
         <?php if($order && $order->getId()): ?>
             <script type="text/javascript">

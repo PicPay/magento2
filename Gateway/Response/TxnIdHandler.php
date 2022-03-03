@@ -75,7 +75,7 @@ class TxnIdHandler implements HandlerInterface
                 $context['errors'] = array_column($response['return']['errors'], 'message');
             }
 
-            $this->logger->error('picpay payment error', $context);
+            $this->logger->error('picpay creating order error', $context);
 
             throw $exception;
         }

@@ -788,8 +788,8 @@ class Data extends AbstractHelper
             $creditMemo->setInvoice($invoiceObj);
             $this->creditmemoService->refund($creditMemo);
 
+            $order->save();
         }
-        $order->save();
     }
 
     /**

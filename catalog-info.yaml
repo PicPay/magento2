@@ -21,4 +21,4 @@ metadata:
 spec:
   type: plugin
   lifecycle: production
-  owner: beecommerce
+  owner: squad-ecommerce

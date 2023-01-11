@@ -611,7 +611,13 @@ class Data extends AbstractHelper
 
         $buyerFirstname = $billingAddress->getFirstname();
         $buyerLastname = $billingAddress->getLastname();
-        $buyerDocument = $this->_formatTaxVat($taxvat);
+        $buyerDocument = !empty($taxvat) ? $this->_formatTaxVat($taxvat) : false;
+        if(!$buyerDocument)
+        {
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('It is necessary to put CPF/VAT Number in your registration to finalize the purchase.')
+            );
+        }
         $buyerEmail = $billingAddress->getEmail();
         $buyerPhone = $this->_extractPhone($billingAddress->getTelephone());
 

@@ -447,7 +447,7 @@ class Data extends AbstractHelper
     /**
      * Get buyer object from Order
      *
-     * @param $order
+     * @param \Magento\Sales\Model\Order $order
      * @param null|\Magento\Quote\Model\Quote $quote
      * @return array
      * @throws \Magento\Framework\Exception\LocalizedException
@@ -457,27 +457,10 @@ class Data extends AbstractHelper
     {
         /** @var \Magento\Payment\Gateway\Data\Order\AddressAdapter $billingAddress */
         $billingAddress = $order->getBillingAddress();
-        $taxvat = false;
-
-        $customerId = $order->getCustomerId();
-        if ($customerId) {
-            $customer = $this->customerRepositoryInterface->getById($customerId);
-            if ($customer && $customer->getId()) {
-                $taxvat = $customer->getTaxvat();
-            }
-        }
-
-        if (!$taxvat && $quote) {
-            /** @var \Magento\Quote\Model\Quote $quote */
-            $addressObj = $quote->getBillingAddress();
-            if ($addressObj && $addressObj->getId()) {
-                $taxvat = $addressObj->getVatId();
-            }
-        }
 
         $buyerFirstname = $billingAddress->getFirstname();
         $buyerLastname = $billingAddress->getLastname();
-        $buyerDocument = $this->formatTaxVat($taxvat);
+        $buyerDocument = $this->formatTaxVat($this->getTaxVat($order, $quote));
         $buyerEmail = $billingAddress->getEmail();
         $buyerPhone = $this->extractPhone($billingAddress->getTelephone());
 
@@ -512,7 +495,6 @@ class Data extends AbstractHelper
         }
 
         return $taxvat;
-
     }
 
     /**
@@ -642,7 +624,7 @@ class Data extends AbstractHelper
         $payment->setAdditionalInformation("authorizationId", $authorizationId);
         $payment->save();
 
-        /** @var \Magento\Sales\Model\Order\Invoice $invoice */
+        /** @var Invoice $invoice */
         $invoice = $this->invoiceService->prepareInvoice($order);
 
         if (!$invoice) {
@@ -656,10 +638,7 @@ class Data extends AbstractHelper
             );
         }
 
-        $invoice->setRequestedCaptureCase(
-            \Magento\Sales\Model\Order\Invoice::CAPTURE_ONLINE
-        );
-
+        $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
         $invoice->register();
 
         $invoice->getOrder()->setCustomerNoteNotify(false);
@@ -700,5 +679,35 @@ class Data extends AbstractHelper
             $dataText = $dataText['base64'];
         }
         return '<img src="' . $dataText . '" width="' . $imageWidth . '" style="' . $style . '"/>';
+    }
+
+    /**
+     * @param Order $order
+     * @param \Magento\Quote\Model\Quote|null $quote
+     * @return string
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    public function getTaxVat($order, $quote): string
+    {
+        $taxvat = trim($order->getCustomerTaxvat()) ?: '';
+        if (!$taxvat) {
+            $customerId = $order->getCustomerId();
+            if ($customerId) {
+                $customer = $this->customerRepositoryInterface->getById($customerId);
+                if ($customer && $customer->getId()) {
+                    $taxvat = trim((string) $customer->getTaxvat());
+                }
+            }
+
+            if (!$taxvat && $quote) {
+                /** @var \Magento\Quote\Model\Quote $quote */
+                $addressObj = $quote->getBillingAddress();
+                if ($addressObj && $addressObj->getId()) {
+                    $taxvat = (string) $addressObj->getVatId();
+                }
+            }
+        }
+        return $taxvat;
     }
 }

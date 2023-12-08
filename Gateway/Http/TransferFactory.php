@@ -44,7 +44,7 @@ class TransferFactory implements TransferFactoryInterface
         unset($request['api_url']);
 
         return $this->transferBuilder
-            ->setMethod(\Zend_Http_Client::POST)
+            ->setMethod('POST')
             ->setHeaders(
                 [
                     "x-picpay-token: {$this->picpay->getToken()}",

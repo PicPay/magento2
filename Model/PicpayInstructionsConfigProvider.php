@@ -53,10 +53,9 @@ class PicpayInstructionsConfigProvider implements ConfigProviderInterface
     /**
      * Get instructions text from config
      *
-     * @param string $code
      * @return string
      */
-    protected function getInstructions()
+    protected function getInstructions(): string
     {
         if($this->paymentHelper->useCustomForm()) {
             return $this->paymentHelper->getCustomHtmlForm();

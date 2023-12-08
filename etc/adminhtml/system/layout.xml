@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * @category    Picpay
+ * @package     Picpay_Payment
+ *
+ */
+-->
+
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="picpay_layout" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Checkout and Layout Settings</label>
+        <comment>Configure the checkout behavior.</comment>
+
+        <field id="mode" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Checkout Mode</label>
+            <source_model>\Picpay\Payment\Model\Source\Mode</source_model>
+            <config_path>payment/picpay_standard/mode</config_path>
+        </field>
+        <field id="onpage_width" translate="label comment" type="text" sortOrder="70" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Qrcode width on "On Page Mode"</label>
+            <comment>Set the size in pixels. Use only numbers.</comment>
+            <validate>validate-number validate-zero-or-greater</validate>
+            <config_path>payment/picpay_standard/onpage_width</config_path>
+            <depends>
+                <field id="payment/picpay_standard/mode">1</field>
+            </depends>
+        </field>
+        <field id="onpage_message" translate="label" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Message to show with the QRCode on success page</label>
+            <config_path>payment/picpay_standard/onpage_message</config_path>
+            <depends>
+                <field id="payment/picpay_standard/mode">1</field>
+            </depends>
+        </field>
+        <field id="qrcode_info_width" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>QRCode width on info payments</label>
+            <comment>Set the size in pixels. Use only numbers.</comment>
+            <validate>validate-number validate-zero-or-greater</validate>
+            <config_path>payment/picpay_standard/qrcode_info_width</config_path>
+        </field>
+        <field id="use_custom_form" translate="label comment" type="select" sortOrder="130" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Use Custom Form</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>Enable it if you want to show a message on Checkout's Page</comment>
+            <config_path>payment/picpay_standard/use_custom_form</config_path>
+        </field>
+        <field id="custom_form_html" translate="label" type="textarea" sortOrder="140" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Custom Form HTML</label>
+            <comment>Insert the message you want to show on checkout's page, it can be an HTML message</comment>
+            <config_path>payment/picpay_standard/custom_form_html</config_path>
+            <depends>
+                <field id="payment/picpay_standard/use_custom_form">1</field>
+            </depends>
+        </field>
+    </group>
+</include>

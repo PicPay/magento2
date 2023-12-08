@@ -5,16 +5,12 @@
             <picpay_standard>
                 <active>0</active>
                 <model>PicPayStandardFacade</model>
-                <title>Picpay</title>
-                <mode>2</mode>
+                <title>PicPay</title>
+                <mode>1</mode>
                 <allowspecific>0</allowspecific>
                 <notification>1</notification>
                 <use_custom_form>0</use_custom_form>
                 <order_status>pending</order_status>
-                <customer_cpf_attribute>customer|taxvat</customer_cpf_attribute>
-                <address_telephone_attribute>telephone</address_telephone_attribute>
-                <iframe_width>500</iframe_width>
-                <iframe_height>700</iframe_height>
                 <can_initialize>1</can_initialize>
                 <can_authorize>1</can_authorize>
                 <can_capture>1</can_capture>

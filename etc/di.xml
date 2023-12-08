@@ -2,8 +2,12 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
 
+    <preference for="Picpay\Payment\Api\Data\CallbackInterface" type="Picpay\Payment\Model\Callback"/>
+    <preference for="Picpay\Payment\Api\CallbackRepositoryInterface" type="Picpay\Payment\Model\ResourceModel\CallbackRepository"/>
+    <preference for="Picpay\Payment\Api\Data\CallbackSearchResultsInterface" type="Magento\Framework\Api\SearchResults"/>
+
     <type name="Magento\Sales\Block\Adminhtml\Order\View">
-        <plugin name="addMyButton" type="Picpay\Payment\Block\Plugin\Adminhtml\Order\View"/>
+        <plugin name="addMyButton" type="Picpay\Payment\Plugin\Block\Adminhtml\Order\View"/>
     </type>
 
     <!-- Payment Method Facade configuration -->
@@ -15,13 +19,6 @@
             <argument name="valueHandlerPool" xsi:type="object">PicPayStandardValueHandlerPool</argument>
             <argument name="validatorPool" xsi:type="object">PicPayStandardValidatorPool</argument>
             <argument name="commandPool" xsi:type="object">PicPayStandardCommandPool</argument>
-        </arguments>
-    </virtualType>
-
-    <!-- Configuration reader -->
-    <virtualType name="PicPayStandardConfig" type="Magento\Payment\Gateway\Config\Config">
-        <arguments>
-            <argument name="methodCode" xsi:type="const">\Picpay\Payment\Model\Ui\ConfigProvider::CODE</argument>
         </arguments>
     </virtualType>
 
@@ -44,7 +41,6 @@
             <argument name="commands" xsi:type="array">
                 <item name="initialize" xsi:type="string">Picpay\Payment\Gateway\Command\InitializeCommand</item>
                 <item name="authorize" xsi:type="string">PicPayStandardAuthorizeCommand</item>
-                <item name="capture" xsi:type="string">Picpay\Payment\Gateway\Command\DoNothingCommand</item>
                 <item name="void" xsi:type="string">PicPayStandardVoidCommand</item>
                 <item name="refund" xsi:type="string">PicPayStandarRefundCommand</item>
                 <item name="cancel" xsi:type="string">PicPayStandardVoidCommand</item>
@@ -173,10 +169,26 @@
             <argument name="config" xsi:type="object">PicPayStandardConfig</argument>
         </arguments>
     </virtualType>
+
+    <!-- Configuration reader -->
     <virtualType name="PicPayStandardConfig" type="Magento\Payment\Gateway\Config\Config">
         <arguments>
             <argument name="methodCode" xsi:type="const">\Picpay\Payment\Model\Ui\ConfigProvider::CODE</argument>
         </arguments>
     </virtualType>
 
+    <!-- Admin Grids -->
+    <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
+        <arguments>
+            <argument name="collections" xsi:type="array">
+                <item name="picpay_payment_callback_listing_data_source" xsi:type="string">PicpayPaymentCallbackCollection</item>
+            </argument>
+        </arguments>
+    </type>
+    <virtualType name="PicpayPaymentCallbackCollection" type="Picpay\Payment\Ui\DataProvider\Callback\Listing\Collection">
+        <arguments>
+            <argument name="mainTable" xsi:type="string">picpay_callback</argument>
+            <argument name="resourceModel" xsi:type="string">Picpay\Payment\Model\ResourceModel\Callback</argument>
+        </arguments>
+    </virtualType>
 </config>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<csp_whitelist xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Csp:etc/csp_whitelist.xsd">
+    <policies>
+        <policy id="script-src">
+            <values>
+                <value id="picpay-src" type="host">*.picpay.com</value>
+                <value id="picpay-br-src" type="host">*.picpay.com.br</value>
+            </values>
+        </policy>
+        <policy id="frame-src">
+            <values>
+                <value id="picpay-frame" type="host">*.picpay.com</value>
+                <value id="picpay-br-frame" type="host">*.picpay.com.br</value>
+            </values>
+        </policy>
+        <policy id="child-src">
+            <values>
+                <value id="picpay-frame" type="host">*.picpay.com</value>
+                <value id="picpay-br-frame" type="host">*.picpay.com.br</value>
+            </values>
+        </policy>
+        <policy id="frame-ancestors">
+            <values>
+                <value id="picpay-frame-ancestors" type="host">*.picpay.com</value>
+                <value id="picpay-br-frame-ancestors" type="host">*.picpay.com.br</value>
+            </values>
+        </policy>
+        <policy id="img-src">
+            <values>
+                <value id="picpay-img" type="host">*.picpay.com</value>
+                <value id="picpay-br-img" type="host">*.picpay.com.br</value>
+            </values>
+        </policy>
+        <policy id="style-src">
+            <values>
+                <value id="picpay-style" type="host">*.picpay.com</value>
+                <value id="picpay-br-style" type="host">*.picpay.com.br</value>
+            </values>
+        </policy>
+        <policy id="connect-src">
+            <values>
+                <value id="picpay-connect-src" type="host">*.picpay.com</value>
+                <value id="picpay-br-connect-src" type="host">*.picpay.com.br</value>
+            </values>
+        </policy>
+    </policies>
+</csp_whitelist>

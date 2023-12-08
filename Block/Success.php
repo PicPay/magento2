@@ -14,7 +14,7 @@ class Success extends \Magento\Framework\View\Element\Template
     /**
      * @var Data
      */
-    protected $_helper;
+    protected $helper;
 
     /**
      * @var Session
@@ -24,7 +24,7 @@ class Success extends \Magento\Framework\View\Element\Template
     /**
      * @var Order
      */
-    protected $_order;
+    protected $order;
 
     /**
      * Success constructor.
@@ -41,8 +41,8 @@ class Success extends \Magento\Framework\View\Element\Template
     )
     {
         $this->_checkoutSession = $checkoutSession;
-        $this->_helper = $helper;
-        $this->_order = $this->_checkoutSession->getLastRealOrder();
+        $this->helper = $helper;
+        $this->order = $this->_checkoutSession->getLastRealOrder();
         parent::__construct($context, $data);
     }
 
@@ -51,7 +51,7 @@ class Success extends \Magento\Framework\View\Element\Template
      */
     public function getHelper()
     {
-        return $this->_helper;
+        return $this->helper;
     }
 
     /**
@@ -59,6 +59,6 @@ class Success extends \Magento\Framework\View\Element\Template
      */
     public function getOrder()
     {
-        return $this->_order;
+        return $this->order;
     }
 }

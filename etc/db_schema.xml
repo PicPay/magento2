@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade this extension to newer
+ * version in the future.
+ *
+ * @category    PicPay
+ * @package     PicPay_Payment
+ *
+ */
+-->
+<schema xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Setup/Declaration/Schema/etc/schema.xsd">
+    <table name="picpay_callback" resource="default" engine="innodb" comment="PicPay Callback">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="text" name="payload" nullable="false" comment="Payload"/>
+        <column xsi:type="varchar" name="method" length="255" nullable="false" comment="Payment Method" default="picpay_redirect"/>
+        <column xsi:type="varchar" name="status" length="255" nullable="false" comment="Status"/>
+        <column xsi:type="varchar" name="increment_id" length="255" nullable="false" comment="Order Increment ID"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created Datetime"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated Datetime"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="PICPAY_CALLBACK_INCREMENT_ID" indexType="btree">
+            <column name="increment_id"/>
+        </index>
+        <index referenceId="PICPAY_CALLBACK_STATUS" indexType="btree">
+            <column name="status"/>
+        </index>
+    </table>
+
+    <table name="picpay_request" resource="default" engine="innodb" comment="PicPay Requests">
+        <column xsi:type="int" name="entity_id" padding="10" unsigned="true" nullable="false" identity="true" comment="ID"/>
+        <column xsi:type="text" name="request" nullable="false" comment="Request"/>
+        <column xsi:type="text" name="response" nullable="false" comment="Response"/>
+        <column xsi:type="varchar" name="method" length="255" nullable="false" comment="Payment Method"/>
+        <column xsi:type="varchar" name="status_code" length="255" nullable="false" comment="Status Code"/>
+        <column xsi:type="varchar" name="increment_id" length="255" nullable="false" comment="Order Increment ID"/>
+        <column xsi:type="timestamp" name="created_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="false" comment="Created Datetime"/>
+        <column xsi:type="timestamp" name="updated_at" nullable="false" default="CURRENT_TIMESTAMP" on_update="true" comment="Updated Datetime"/>
+        <constraint xsi:type="primary" referenceId="PRIMARY">
+            <column name="entity_id"/>
+        </constraint>
+        <index referenceId="PICPAY_REQUEST_INCREMENT_ID" indexType="btree">
+            <column name="increment_id"/>
+        </index>
+        <index referenceId="PICPAY_REQUEST_STATUS" indexType="btree">
+            <column name="status_code"/>
+        </index>
+    </table>
+</schema>

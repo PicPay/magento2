@@ -4,11 +4,12 @@ namespace Picpay\Payment\Controller\Adminhtml\Consult;
 
 use Magento\Framework\Controller\ResultFactory;
 use Magento\Sales\Model\Order;
+use Picpay\Payment\Helper\Data;
 
 class Index extends \Magento\Backend\App\Action
 {
     /**
-     * @var \Picpay\Payment\Helper\Data
+     * @var Data
      */
     protected $paymentHelper;
 
@@ -19,7 +20,7 @@ class Index extends \Magento\Backend\App\Action
 
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
-        \Picpay\Payment\Helper\Data $paymentHelper,
+        Data $paymentHelper,
         \Magento\Sales\Model\OrderFactory $salesOrderFactory
     ) {
         $this->paymentHelper = $paymentHelper;
@@ -29,20 +30,22 @@ class Index extends \Magento\Backend\App\Action
 
     public function execute()
     {
-        /** @var \Picpay\Payment\Helper\Data $helper */
+        /** @var Data $helper */
         $helper = $this->paymentHelper;
 
         $orderId = $this->getRequest()->getParam("order_id");
 
-        if(!$orderId) {
-            $this->_redirectReferer();
-            return;
+        if (!$orderId) {
+            //Redirect referer
+            $this->messageManager->addErrorMessage(_('Order not found'));
+            return $this->_redirect('sales/order/index', ['_current' => true]);
         }
 
         /** @var \Magento\Sales\Model\Order $order */
         $order = $this->salesOrderFactory->create()->load($orderId);
 
-        if(!$order
+        if(
+            !$order
             || !$order->getId()
             || $order->getPayment()->getMethodInstance()->getCode() != "picpay_standard"
         ) {
@@ -59,7 +62,7 @@ class Index extends \Magento\Backend\App\Action
         }
 
         $authorizationId = $order->getPayment()->getAdditionalInformation("authorizationId");
-        
+
         if(isset($return['return']['authorizationId'])
             && $authorizationId != $return['return']['authorizationId']
         ) {

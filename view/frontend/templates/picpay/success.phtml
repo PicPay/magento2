@@ -4,7 +4,6 @@
  * @var \Picpay\Payment\Block\Success $this
  */
 
-
 /** @var \Picpay\Payment\Helper\Data $picpayHelper */
 $picpayHelper = $this->getHelper();
 
@@ -18,27 +17,25 @@ $isSecure = $picpayHelper->isCurrentlySecure();
     <?php /** @var \Magento\Sales\Model\Order\Payment $payment */ ?>
     <?php $payment = $order->getPayment(); ?>
 
-    <?php if($paymentUrl = $payment->getAdditionalInformation("paymentUrl")): ?>
-
-        <?php if($picpayHelper->isIframeMode()): ?>
-
-            <iframe src="<?php echo $paymentUrl ?>" style="<?php echo $picpayHelper->getIframeStyle(); ?>" />
-
-        <?php elseif ($picpayHelper->isOnpageMode()): ?>
-            <?php $qrcodeSource = $payment->getAdditionalInformation("qrcode"); ?>
-            <?php $onpageWidth = $picpayHelper->getQrcodeOnpageWidth(); ?>
-            <?php $imageSize = $onpageWidth ? $onpageWidth : $picpayHelper::DEFAULT_QRCODE_WIDTH ; ?>
+    <?php if ($paymentUrl = $payment->getAdditionalInformation("paymentUrl")): ?>
+        <?php if ($picpayHelper->isOnpageMode()): ?>
+            <?php
+            $qrcodeSource = $payment->getAdditionalInformation("qrcode");
+            $onPageWidth = $picpayHelper->getQrcodeOnpageWidth();
+            $imageSize = $onPageWidth ?: $picpayHelper::DEFAULT_QRCODE_WIDTH ;
+            $style = "margin-left: auto; margin-right: auto;";
+            ?>
             <p>
-                <?php echo $picpayHelper->generateQrCode($qrcodeSource, $imageSize,  'margin-left: auto; margin-right: auto;'); ?>
+                <?= $picpayHelper->generateQrCode($qrcodeSource, (string) $imageSize,  $style); ?>
             </p>
             <p>
-                <?php echo $picpayHelper->getMessageOnpageSuccess(); ?>
+                <?= $picpayHelper->getMessageOnpageSuccess(); ?>
             </p>
 
             <script type="text/javascript">
                 <?php $explodedUrl = explode("/checkout/", $paymentUrl); ?>
                 <?php $transactionCode = end($explodedUrl); ?>
-                var checkUrl = "https://appws.picpay.com/ecommerce/checkout/qr-code?order=<?php echo $transactionCode; ?>&url=https%3A%2F%2Fapp.picpay.com%2Fcheckout%2F<?php echo $transactionCode; ?>";
+                var checkUrl = "https://appws.picpay.com/ecommerce/checkout/qr-code?order=<?= $transactionCode; ?>&url=https%3A%2F%2Fapp.picpay.com%2Fcheckout%2F<?= $transactionCode; ?>";
 
                 var getJSON = function(url, callback) {
                     var xhr = new XMLHttpRequest();
@@ -63,16 +60,15 @@ $isSecure = $picpayHelper->isCurrentlySecure();
                             if( typeof data.status != "undefined"
                                 && typeof data.storeOrderId != "undefined"
                                 && data.status == "paid"
-                                && data.storeOrderId == "<?php echo $order->getIncrementId(); ?>"
+                                && data.storeOrderId == "<?= $order->getIncrementId(); ?>"
                             ) {
-                                window.location.href = '<?php echo $this->getUrl("sales/order/view", array('order_id' => $order->getId(), '_secure' => $isSecure)); ?>';
+                                window.location.href = '<?= $this->getUrl("sales/order/view", array('order_id' => $order->getId(), '_secure' => $isSecure)); ?>';
                                 clearInterval(interval);
                             }
                         }
                     });
                 }, 1500);
             </script>
-
         <?php endif; ?>
     <?php endif; ?>
 <?php endif; ?>

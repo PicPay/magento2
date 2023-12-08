@@ -3,10 +3,8 @@
 namespace Picpay\Payment\Helper;
 
 use Magento\Backend\Model\Session;
-use Magento\Config\Model\Config\Backend\Admin\Custom;
 use Magento\Customer\Api\CustomerRepositoryInterface;
 use Magento\Eav\Model\ConfigFactory;
-use Magento\Eav\Model\ResourceModel\Entity\Attribute;
 use Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -15,6 +13,7 @@ use Magento\Framework\HTTP\Adapter\Curl;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Framework\Module\ModuleListInterface;
 use Magento\Framework\UrlInterface;
+use Magento\Sales\Api\Data\OrderInterface;
 use Magento\Sales\Api\RefundInvoiceInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\CreditmemoFactory;
@@ -28,128 +27,79 @@ use Psr\Log\LoggerInterface;
 
 class Data extends AbstractHelper
 {
-    const API_URL = "https://appws.picpay.com/ecommerce/public";
-    const MODULE_NAME = "Picpay_Payment";
-    const ONPAGE_MODE = 1;
-    const IFRAME_MODE = 2;
-    const REDIRECT_MODE = 3;
+    public const API_URL = "https://appws.picpay.com/ecommerce/public";
+    public const MODULE_NAME = "Picpay_Payment";
+    public const ONPAGE_MODE = 1;
+    public const REDIRECT_MODE = 3;
 
-    const XML_PATH_SYSTEM_CONFIG = "payment/picpay_standard";
-    const SUCCESS_PATH_URL = "sales/order/view";
-    const SUCCESS_HISTORY_PATH_URL = "sales/order/history";
-    const SUCCESS_IFRAME_PATH_URL = "picpay/standard/success";
+    public const XML_PATH_SYSTEM_CONFIG = "payment/picpay_standard";
+    public const SUCCESS_HISTORY_PATH_URL = "sales/order/history";
 
-    const PHTML_SUCCESS_PATH_ONPAGE = "picpay/success.qrcode.phtml";
-    const PHTML_SUCCESS_PATH_IFRAME = "picpay/success.iframe.phtml";
-
-    const DEFAULT_QRCODE_WIDTH = 150;
-    const DEFAULT_IFRAME_HEIGHT = 300;
+    public const DEFAULT_QRCODE_WIDTH = 150;
 
     /**
      * Store
      * @var bool|\Magento\Store\Model\Store
      */
-    protected $_store = false;
+    protected $store = false;
 
-    /**
-     * @var \Magento\Store\Model\StoreManagerInterface
-     */
+    /** @var \Magento\Store\Model\StoreManagerInterface */
     protected $storeManager;
 
-    /**
-     * @var \Magento\Eav\Model\ConfigFactory
-     */
+    /** @var \Magento\Eav\Model\ConfigFactory */
     protected $eavConfigFactory;
 
-    /**
-     * @var \Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory
-     */
+    /** @var \Magento\Eav\Model\ResourceModel\Entity\Attribute\CollectionFactory */
     protected $eavResourceModelEntityAttributeCollectionFactory;
 
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
+    /** @var \Psr\Log\LoggerInterface */
     protected $logger;
 
-    /**
-     * @var \Magento\Backend\Model\Session
-     */
+    /** @var \Magento\Backend\Model\Session */
     protected $backendSession;
 
-    /**
-     * @var \Magento\Framework\DB\TransactionFactory
-     */
+    /** @var \Magento\Framework\DB\TransactionFactory */
     protected $transactionFactory;
 
-    /**
-     * @var \Magento\Sales\Model\Order\StatusFactory
-     */
+    /** @var \Magento\Sales\Model\Order\StatusFactory */
     protected $salesOrderStatusFactory;
 
-    /**
-     * @var UrlInterface
-     */
+    /** @var UrlInterface */
     protected $urlBuilder;
 
-    /**
-     * @var ModuleListInterface
-     */
+    /** @var ModuleListInterface */
     protected $moduleList;
 
-    /**
-     * @var CustomerRepositoryInterface
-     */
+    /** @var CustomerRepositoryInterface */
     protected $customerRepositoryInterface;
 
-    /**
-     * @var \Magento\Framework\HTTP\Adapter\Curl $curl
-     */
+    /** @var \Magento\Framework\HTTP\Adapter\Curl $curl */
     protected $curl;
 
-    /**
-     * @var \Magento\Sales\Api\RefundInvoiceInterface
-     */
+    /** @var \Magento\Sales\Api\RefundInvoiceInterface */
     protected $invoiceRefunder;
 
-    /**
-     * @var \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender
-     */
+    /** @var \Magento\Sales\Model\Order\Email\Sender\InvoiceSender $invoiceSender */
     protected $invoiceSender;
 
-    /**
-     * @var \Magento\Framework\Message\ManagerInterface
-     */
+    /** @var \Magento\Framework\Message\ManagerInterface */
     protected $messageManager;
 
-    /**
-     * @var \Magento\Sales\Model\Service\InvoiceService
-     */
+    /** @var \Magento\Sales\Model\Service\InvoiceService */
     protected $invoiceService;
 
-    /**
-     * Data constructor.
-     *
-     * @param Context                     $context
-     * @param StoreManagerInterface       $storeManager
-     * @param ConfigFactory               $eavConfigFactory
-     * @param CollectionFactory           $eavResourceModelEntityAttributeCollectionFactory
-     * @param LoggerInterface             $logger
-     * @param Session                     $backendSession
-     * @param TransactionFactory          $transactionFactory
-     * @param StatusFactory               $salesOrderStatusFactory
-     * @param UrlInterface                $urlBuilder
-     * @param ModuleListInterface         $moduleList
-     * @param CustomerRepositoryInterface $customerRepositoryInterface
-     * @param Curl                        $curl
-     * @param RefundInvoiceInterface      $refundInvoice
-     * @param InvoiceSender               $invoiceSender
-     * @param InvoiceService              $invoiceService
-     * @param ManagerInterface            $messageManager
-     * @param CreditmemoFactory           $creditmemoFactory
-     * @param CreditmemoService           $creditmemoService
-     * @param Invoice                     $invoice
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     */
+    /** @var OrderInterface  */
+    protected $order;
+
+    /** @var CreditmemoFactory  */
+    protected $creditmemoFactory;
+
+    /** @var CreditmemoService  */
+    protected $creditmemoService;
+
+    /** @var Invoice  */
+    protected $invoice;
+
     public function __construct(
         Context $context,
         StoreManagerInterface $storeManager,
@@ -169,7 +119,8 @@ class Data extends AbstractHelper
         ManagerInterface $messageManager,
         CreditmemoFactory $creditmemoFactory,
         CreditmemoService $creditmemoService,
-        Invoice $invoice
+        Invoice $invoice,
+        OrderInterface $order
     ) {
         parent::__construct($context);
 
@@ -187,32 +138,23 @@ class Data extends AbstractHelper
         $this->invoiceRefunder = $refundInvoice;
         $this->invoiceSender = $invoiceSender;
         $this->invoiceService = $invoiceService;
+        $this->messageManager = $messageManager;
         $this->creditmemoFactory = $creditmemoFactory;
         $this->creditmemoService = $creditmemoService;
         $this->invoice = $invoice;
+        $this->order = $order;
 
-        if (is_null($this->_store)) {
-            $this->_store = $this->storeManager->getStore();
+        if (is_null($this->store)) {
+            $this->store = $this->storeManager->getStore();
         }
     }
 
-    /**
-     * @return bool
-     */
-    public function isEnabled()
+    public function getStoreConfig(string $path): string
     {
-        return true;
-    }
-
-    /**
-     * Get config from system configs module
-     *
-     * @param string $path config path
-     * @return string value
-     */
-    public function getStoreConfig($path)
-    {
-        return $this->scopeConfig->getValue(self::XML_PATH_SYSTEM_CONFIG . '/' . $path, \Magento\Store\Model\ScopeInterface::SCOPE_STORE);
+        return (string) $this->scopeConfig->getValue(
+            self::XML_PATH_SYSTEM_CONFIG . '/' . $path,
+            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
+        );
     }
 
     /**
@@ -220,78 +162,38 @@ class Data extends AbstractHelper
      */
     public function getStore()
     {
-        if ($this->_store) {
-            return $this->_store;
+        if (!$this->store) {
+            $this->store = $this->storeManager->getStore();
         }
-        return $this->_store = $this->storeManager->getStore();
+        return $this->store;
     }
 
-    /**
-     * Check if picpay payment is enabled
-     *
-     * @return string
-     */
-    public function isActive()
+    public function isActive(): bool
     {
-        return $this->getStoreConfig("active");
+        return (bool) $this->getStoreConfig('active');
     }
 
-    /**
-     * Get mode of checkout
-     *
-     * @return string
-     */
-    public function getCheckoutMode()
+    public function getCheckoutMode(): string
     {
         return $this->getStoreConfig("mode");
     }
 
-    /**
-     * Check if mode is On Page
-     *
-     * @return string
-     */
-    public function isOnpageMode()
+    public function isOnpageMode(): bool
     {
-        return $this->getCheckoutMode() == self::ONPAGE_MODE;
+        return !$this->isRedirectMode();
     }
 
-    /**
-     * Check if mode is Iframe
-     *
-     * @return string
-     */
-    public function isIframeMode()
+    public function isRedirectMode(): bool
     {
-        return $this->getCheckoutMode() == self::IFRAME_MODE;
+        return ($this->getCheckoutMode() == self::REDIRECT_MODE);
     }
 
-    /**
-     * Check if mode is Redirect
-     *
-     * @return string
-     */
-    public function isRedirectMode()
-    {
-        return $this->getCheckoutMode() == self::REDIRECT_MODE;
-    }
-
-    /**
-     * Get Picpay Token for API
-     *
-     * @return string
-     */
-    public function getToken()
+    public function getToken(): string
     {
         return $this->getStoreConfig("token");
     }
 
-    /**
-     * Get Seller Token for API
-     *
-     * @return string
-     */
-    public function getSellerToken()
+    public function getSellerToken(): string
     {
         return $this->getStoreConfig("seller_token");
     }
@@ -301,10 +203,10 @@ class Data extends AbstractHelper
      *
      * @return string
      */
-    public function getQrcodeInfoWidth()
+    public function getQrcodeInfoWidth(): string
     {
         $value = $this->getStoreConfig("qrcode_info_width");
-        return $value ? $value : self::DEFAULT_QRCODE_WIDTH;
+        return $value ?: self::DEFAULT_QRCODE_WIDTH;
     }
 
     /**
@@ -315,7 +217,7 @@ class Data extends AbstractHelper
     public function getQrcodeOnpageWidth()
     {
         $value = $this->getStoreConfig("onpage_width");
-        return $value ? $value : self::DEFAULT_QRCODE_WIDTH;
+        return $value ?: self::DEFAULT_QRCODE_WIDTH;
     }
 
     /**
@@ -327,23 +229,6 @@ class Data extends AbstractHelper
     {
         return " - v" . $this->moduleList
                 ->getOne(self::MODULE_NAME)['setup_version'];
-    }
-
-    /**
-     * Get iframe style on iframe mode
-     */
-    public function getIframeStyle()
-    {
-        $valueW = $this->getStoreConfig("iframe_width");
-        $valueH = $this->getStoreConfig("iframe_height");
-        $width = $valueW ? $valueW : self::DEFAULT_QRCODE_WIDTH;
-        $height = $valueH ? $valueH : self::DEFAULT_IFRAME_HEIGHT;
-
-        $style = "";
-        $style .= "margin: 20px auto;";
-        $style .= "width: {$width}px;";
-        $style .= "height: {$height}px;";
-        return $style;
     }
 
     /**
@@ -398,16 +283,6 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Get message to show on callback iframe
-     *
-     * @return string
-     */
-    public function getMessageIframeCallback()
-    {
-        return $this->getStoreConfig("iframe_message");
-    }
-
-    /**
      * Get fields from a given entity
      *
      * @author Gabriela D'Ávila (http://davila.blog.br)
@@ -427,15 +302,15 @@ class Data extends AbstractHelper
      *
      * @return boolean
      */
-    public function isCurrentlySecure()
+    public function isCurrentlySecure(): bool
     {
-        return $this->storeManager->getStore()->isCurrentlySecure();
+        return (bool) $this->storeManager->getStore()->isCurrentlySecure();
     }
 
     /**
      * @return UrlInterface
      */
-    public function getUrlBuilder()
+    public function getUrlBuilder(): UrlInterface
     {
         return $this->urlBuilder;
     }
@@ -444,16 +319,8 @@ class Data extends AbstractHelper
      * Get URL to return to store
      * @var integer|string $orderId
      */
-    public function getReturnUrl($orderId = false)
+    public function getReturnUrl($orderId = false): string
     {
-        $isSecure = $this->storeManager->getStore()->isCurrentlySecure();
-
-        if ($this->isIframeMode()) {
-            return $this->urlBuilder->getUrl(
-                self::SUCCESS_IFRAME_PATH_URL,
-                ["_secure" => $this->isCurrentlySecure()]
-            );
-        }
         return $this->urlBuilder->getUrl(
             self::SUCCESS_HISTORY_PATH_URL,
             [
@@ -466,34 +333,30 @@ class Data extends AbstractHelper
     /**
      * Get URL to return to store
      */
-    public function getCallbackUrl()
+    public function getCallbackUrl(): string
     {
         return $this->urlBuilder->getUrl(
             'picpay/notification/',
-            array("_secure" => $this->isCurrentlySecure(), "isAjax" => 1)
+            ["_secure" => $this->isCurrentlySecure(), "isAjax" => 1]
         );
     }
 
     /**
      * Validate a HTTP Request Authorization
      *
-     * @param Magento\Framework\App\Request\Http $request
+     * @param \Magento\Framework\App\Request\Http $request
      * @return bool
      * @throws \Exception
      */
-    public function validateAuth($request)
+    public function validateAuth($request): bool
     {
-        // Validate system config values
-        if (!$this->getSellerToken()) {
-            return false;
-        }
+        $token = $request->getHeader('x-seller-token');
+        return ($this->getSellerToken() && $token == $this->getSellerToken());
+    }
 
-        // Validate Authorization string
-        if (false == ($token = $request->getHeader('x-seller-token'))) {
-            return false;
-        }
-
-        return ($token == $this->getSellerToken());
+    public function loadOrder(string $incrementId): OrderInterface
+    {
+        return $this->order->loadByIncrementId($incrementId);
     }
 
     /**
@@ -501,7 +364,7 @@ class Data extends AbstractHelper
      *
      * @param mixed
      */
-    public function log($data)
+    public function log(string $data): void
     {
         if ($this->getStoreConfig("debug")) {
             $this->logger->debug($data);
@@ -519,6 +382,9 @@ class Data extends AbstractHelper
      */
     public function requestApi($url, $fields, $type = "POST", $timeout = 10)
     {
+        $success = 0;
+        $message = '';
+
         $tokenApi = $this->getToken();
 
         try {
@@ -539,7 +405,7 @@ class Data extends AbstractHelper
 
             $this->curl->write($type,
                 $url,
-                $http_ver = '1.1',
+                '1.1',
                 $headers,
                 (is_array($fields) ? \json_encode($fields) : $fields)
             );
@@ -547,35 +413,46 @@ class Data extends AbstractHelper
             $response = $this->curl->read();
 
             $this->log("JSON Response from PicPay API");
-            $this->log($response);
+            $this->log((string) $response);
 
-            $httpCode = \Zend_Http_Response::extractCode($response);
+            $httpCode = $this->extractCode($response);
 
             if ($httpCode != 200 && $httpCode == 201) {
-                return array(
-                    'success' => 0,
-                    'return' => $response
-                );
+                $message = $response;
             } else {
-                $response = \Zend_Http_Response::extractBody($response);
-                return array(
-                    'success' => 1,
-                    'return' => \json_decode(trim($response), true)
-                );
+                $response = $this->extractBody($response);
+                $success = 1;
+                $message = \json_decode(trim($response), true);
             }
-//            return array (
-//                'success' => 1,
-//                'return' => []
-//            );
-        } catch (Exception $e) {
+
+        } catch (\Exception $e) {
             $this->log("ERROR on requesting API: " . $e->getMessage());
             $this->logger->critical($e);
-
-            return array(
-                'success' => 0,
-                'return' => $e->getMessage()
-            );
+            $message = $e->getMessage();
         }
+
+        return [
+            'success' => $success,
+            'return' => $message
+        ];
+    }
+
+    public function extractCode(string $response): int
+    {
+        preg_match("|^HTTP/[\d\.x]+ (\d+)|", $response, $m);
+        if (isset($m[1])) {
+            return (int) $m[1];
+        }
+        return 500;
+    }
+
+    public function extractBody(string $response): string
+    {
+        $parts = preg_split('|(?:\r\n){2}|m', $response, 2);
+        if (isset($parts[1])) {
+            return $parts[1];
+        }
+        return '';
     }
 
     /**
@@ -613,25 +490,15 @@ class Data extends AbstractHelper
         $buyerLastname = $billingAddress->getLastname();
         $buyerDocument = $this->_formatTaxVat($taxvat);
         $buyerEmail = $billingAddress->getEmail();
-        $buyerPhone = $this->_extractPhone($billingAddress->getTelephone());
+        $buyerPhone = $this->extractPhone($billingAddress->getTelephone());
 
-        return array(
+        return [
             "firstName" => $buyerFirstname,
             "lastName" => $buyerLastname,
             "document" => $buyerDocument,
             "email" => $buyerEmail,
             "phone" => $buyerPhone
-        );
-    }
-
-    /**
-     * Get telephone attribute code
-     *
-     * @return string
-     */
-    protected function _getTelephoneAttribute()
-    {
-        return $this->getStoreConfig("address_telephone_attribute");
+        ];
     }
 
     /**
@@ -656,10 +523,10 @@ class Data extends AbstractHelper
      * @param string $phone
      * @return string
      */
-    private function _extractPhone($phone)
+    private function extractPhone($phone)
     {
-        $digits = new \Zend_Filter_Digits();
-        $phone = $digits->filter($phone);
+        $phone = preg_replace('/[^0-9]/', '', $phone);
+
         //se começar com zero, pula o primeiro digito
         if (substr($phone, 0, 1) == '0') {
             $phone = substr($phone, 1, strlen($phone));
@@ -668,48 +535,17 @@ class Data extends AbstractHelper
         $phone = preg_replace('/^(\d{2})(\d{7,9})$/', '$1-$2', $phone);
         if (is_array($phone) && count($phone) == 2) {
             list($area, $number) = explode('-', $phone);
-            return implode(" ", array(
+            return implode(" ", [
                 'country' => "+55",
                 'area' => (string)substr($originalPhone, 0, 2),
                 'number' => (string)substr($originalPhone, 2, 9),
-            ));
+            ]);
         }
-        return implode(" ", array(
+        return implode(" ", [
             'country' => "+55",
             'area' => (string)substr($originalPhone, 0, 2),
             'number' => (string)substr($originalPhone, 2, 9),
-        ));
-    }
-
-    /**
-     * Returns customer's CPF based on your module configuration
-     *
-     * @param \Magento\Sales\Model\Order $order
-     * @return mixed
-     */
-    private function _getCustomerCpfValue(\Magento\Sales\Model\Order $order)
-    {
-        $customerCpfAttribute = $this->getStoreConfig('customer_cpf_attribute');
-        $cpfAttributeCnf = explode('|', $customerCpfAttribute);
-        $entity = reset($cpfAttributeCnf);
-        $attrName = end($cpfAttributeCnf);
-        $cpf = '';
-        if ($entity && $attrName) {
-            if (!$order->getCustomerIsGuest()) {
-                $address = ($entity == 'customer') ? $order->getShippingAddress() : $order->getBillingAddress();
-                $cpf = $address->getData($attrName);
-                //if fail,try to get cpf from customer entity
-                if (!$cpf) {
-                    $customer = $order->getCustomer();
-                    $cpf = $customer->getData($attrName);
-                }
-            }
-            //for guest orders...
-            if (!$cpf && $order->getCustomerIsGuest()) {
-                $cpf = $order->getData($entity . '_' . $attrName);
-            }
-        }
-        return $cpf;
+        ]);
     }
 
     /**
@@ -861,7 +697,7 @@ class Data extends AbstractHelper
         $order->save();
     }
 
-    public function generateQrCode($dataText, $imageWidth = 200, $style = "")
+    public function generateQrCode($dataText, string $imageWidth = '200', string $style = ""): string
     {
         if (is_array($dataText)) {
             $dataText = $dataText['base64'];

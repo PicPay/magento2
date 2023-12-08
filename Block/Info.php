@@ -2,11 +2,9 @@
 
 namespace Picpay\Payment\Block;
 
-use Magento\Framework\Phrase;
 use Magento\Payment\Block\ConfigurableInfo;
 use Magento\Framework\View\Element\Template\Context;
 use Magento\Payment\Gateway\ConfigInterface;
-use Picpay\Payment\Gateway\Response\FraudHandler;
 
 class Info extends ConfigurableInfo
 {
@@ -50,7 +48,6 @@ class Info extends ConfigurableInfo
         if (!$this->_order) {
             $this->_order = $this->registry->registry('current_order');
             if (!$this->_order) {
-                $info = $this->getInfo();
                 if ($this->getInfo() instanceof \Magento\Sales\Model\Order\Payment) {
                     $this->_order = $this->getInfo()->getOrder();
                 }
@@ -59,17 +56,13 @@ class Info extends ConfigurableInfo
         return $this->_order;
     }
 
-    public function getPaymentUrl()
+    public function getPaymentUrl(): string
     {
         $order = $this->getOrder();
-        if (is_null($order)) {
-            return "";
+        if ($order) {
+            return (string) $order->getPayment()->getAdditionalInformation("paymentUrl");
         }
-
-        /** @var \Magento\Sales\Model\Order\Payment $payment */
-        $payment = $order->getPayment();
-
-        return $payment->getAdditionalInformation("paymentUrl");
+        return "";
     }
 
     public function getCancellationId()
@@ -119,7 +112,7 @@ class Info extends ConfigurableInfo
                 ? $picpayHelper->getQrcodeInfoWidth()
                 : $picpayHelper::DEFAULT_QRCODE_WIDTH;
 
-            return $picpayHelper->generateQrCode($paymentUrl, $imageSize);
+            return $picpayHelper->generateQrCode($paymentUrl, (string) $imageSize);
         }
     }
 }

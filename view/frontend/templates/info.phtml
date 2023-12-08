@@ -1,8 +1,8 @@
-<p><?php echo __("Picpay Payment") ?></p>
+<p><?php echo __("Picpay") ?></p>
 
 <?php if($this->getPaymentUrl()): ?>
     <h3><?= __('Pay with PicPay') ?>Pague com PicPay</h3>
-    <p><?= __('Abra o PicPay em seu telefone e escaneie o código abaixo:') ?></p>
+    <p><?= __('Open the PicPay app on your smartphone and scan the QRCode below:') ?></p>
     <p>
         <a href="<?php echo $this->getPaymentUrl(); ?>" target="_blank" title="<?= __('Payment QR Code') ?>">
             <?php echo $this->getQrcode() ?>

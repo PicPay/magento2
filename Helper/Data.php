@@ -669,7 +669,7 @@ class Data extends AbstractHelper
         $invoice->getOrder()->setIsInProcess(true);
 
         $order->addStatusHistoryComment(
-            __("Order invoiced by API notification. Authorization Id: " . $authorizationId),
+            __('Order invoiced by API notification. Authorization Id: %1', $authorizationId),
             false
         );
 

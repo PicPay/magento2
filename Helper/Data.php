@@ -88,16 +88,16 @@ class Data extends AbstractHelper
     /** @var \Magento\Sales\Model\Service\InvoiceService */
     protected $invoiceService;
 
-    /** @var OrderInterface  */
+    /** @var OrderInterface */
     protected $order;
 
-    /** @var CreditmemoFactory  */
+    /** @var CreditmemoFactory */
     protected $creditmemoFactory;
 
-    /** @var CreditmemoService  */
+    /** @var CreditmemoService */
     protected $creditmemoService;
 
-    /** @var Invoice  */
+    /** @var Invoice */
     protected $invoice;
 
     public function __construct(
@@ -220,25 +220,14 @@ class Data extends AbstractHelper
         return $value ?: self::DEFAULT_QRCODE_WIDTH;
     }
 
-    /**
-     * Get module's version
-     *
-     * @return mixed
-     */
-    public function getVersion()
+    public function getVersion(): string
     {
-        return " - v" . $this->moduleList
-                ->getOne(self::MODULE_NAME)['setup_version'];
+        return " - v" . $this->moduleList->getOne(self::MODULE_NAME)['setup_version'];
     }
 
-    /**
-     * Check if notification enabled
-     *
-     * @return string
-     */
-    public function isNotificationEnabled()
+    public function isNotificationEnabled(): bool
     {
-        return $this->getStoreConfig("notification");
+        return (bool) $this->getStoreConfig("notification");
     }
 
     /**
@@ -247,7 +236,7 @@ class Data extends AbstractHelper
      * @param string $method
      * @return string
      */
-    public function getApiUrl($method = "")
+    public function getApiUrl(string $method = ''): string
     {
         return self::API_URL . $method;
     }
@@ -257,7 +246,7 @@ class Data extends AbstractHelper
      *
      * @return string
      */
-    public function useCustomForm()
+    public function useCustomForm(): string
     {
         return $this->getStoreConfig("use_custom_form");
     }
@@ -267,7 +256,7 @@ class Data extends AbstractHelper
      *
      * @return string
      */
-    public function getCustomHtmlForm()
+    public function getCustomHtmlForm(): string
     {
         return $this->getStoreConfig("custom_form_html");
     }
@@ -277,7 +266,7 @@ class Data extends AbstractHelper
      *
      * @return string
      */
-    public function getMessageOnpageSuccess()
+    public function getMessageOnpageSuccess(): string
     {
         return $this->getStoreConfig("onpage_message");
     }
@@ -289,7 +278,7 @@ class Data extends AbstractHelper
      * @param $type
      * @return mixed
      */
-    public function getFields($type = 'customer_address')
+    public function getFields(string $type = 'customer_address')
     {
         $entityType = $this->eavConfigFactory->create()->getEntityType($type);
         $entityTypeId = $entityType->getEntityTypeId();
@@ -304,7 +293,7 @@ class Data extends AbstractHelper
      */
     public function isCurrentlySecure(): bool
     {
-        return (bool) $this->storeManager->getStore()->isCurrentlySecure();
+        return (bool)$this->storeManager->getStore()->isCurrentlySecure();
     }
 
     /**
@@ -403,7 +392,8 @@ class Data extends AbstractHelper
             $this->log("JSON sent to PicPay API. URL: " . $url);
             $this->log((is_array($fields) ? \json_encode($fields) : $fields));
 
-            $this->curl->write($type,
+            $this->curl->write(
+                $type,
                 $url,
                 '1.1',
                 $headers,
@@ -413,7 +403,7 @@ class Data extends AbstractHelper
             $response = $this->curl->read();
 
             $this->log("JSON Response from PicPay API");
-            $this->log((string) $response);
+            $this->log((string)$response);
 
             $httpCode = $this->extractCode($response);
 
@@ -424,7 +414,6 @@ class Data extends AbstractHelper
                 $success = 1;
                 $message = \json_decode(trim($response), true);
             }
-
         } catch (\Exception $e) {
             $this->log("ERROR on requesting API: " . $e->getMessage());
             $this->logger->critical($e);
@@ -441,7 +430,7 @@ class Data extends AbstractHelper
     {
         preg_match("|^HTTP/[\d\.x]+ (\d+)|", $response, $m);
         if (isset($m[1])) {
-            return (int) $m[1];
+            return (int)$m[1];
         }
         return 500;
     }
@@ -488,7 +477,7 @@ class Data extends AbstractHelper
 
         $buyerFirstname = $billingAddress->getFirstname();
         $buyerLastname = $billingAddress->getLastname();
-        $buyerDocument = $this->_formatTaxVat($taxvat);
+        $buyerDocument = $this->formatTaxVat($taxvat);
         $buyerEmail = $billingAddress->getEmail();
         $buyerPhone = $this->extractPhone($billingAddress->getTelephone());
 
@@ -508,13 +497,22 @@ class Data extends AbstractHelper
      * @return string
      */
 
-    private function _formatTaxVat($taxvat){
-        $formatado = substr($taxvat, 0, 3) . '.';
-        $formatado .= substr($taxvat, 3, 3) . '.';
-        $formatado .= substr($taxvat, 6, 3) . '-';
-        $formatado .= substr($taxvat, 9, 2) . '';
+    private function formatTaxVat(string $taxvat): string
+    {
+        // Remove anything that is not a digit
+        $taxvat = preg_replace('/\D/', '', $taxvat);
 
-        return $formatado;
+        // Check if the CPF is valid
+        if (strlen($taxvat) === 11) {
+            // Format the CPF
+            return substr($taxvat, 0, 3) . '.' .
+                substr($taxvat, 3, 3) . '.' .
+                substr($taxvat, 6, 3) . '-' .
+                substr($taxvat, 9, 2);
+        }
+
+        return $taxvat;
+
     }
 
     /**
@@ -562,7 +560,7 @@ class Data extends AbstractHelper
         }
         $createdAtTime = \strtotime($createdAt);
 
-        $hours = (int)$this->getStoreConfig("hours_to_expires");
+        $hours = (int) $this->getStoreConfig("hours_to_expires");
 
         if (is_numeric($hours) && (int)$hours > 0) {
             $createdAtTime += ($hours * 3600);
@@ -586,11 +584,11 @@ class Data extends AbstractHelper
             case "expired":
             case "refunded":
             case "chargeback":
-                $this->_processRefundOrder($order, $authorizationId);
+                $this->processRefundOrder($order, $authorizationId);
                 break;
             case "paid":
             case "completed":
-                $this->_processPaidOrder($order, $authorizationId);
+                $this->processPaidOrder($order, $authorizationId);
             default: //created, analysis - don't change status order
                 break;
         }
@@ -602,7 +600,7 @@ class Data extends AbstractHelper
      * @param \Magento\Sales\Model\Order $order
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _processRefundOrder($order, $authorizationId)
+    protected function processRefundOrder($order, $authorizationId)
     {
         if ($order->canUnhold()) {
             $order->unhold();
@@ -623,7 +621,6 @@ class Data extends AbstractHelper
 
             $creditMemo->setInvoice($invoiceObj);
             $this->creditmemoService->refund($creditMemo);
-
         }
         $order->save();
     }
@@ -635,7 +632,7 @@ class Data extends AbstractHelper
      * @param string $authorizationId
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    protected function _processPaidOrder($order, $authorizationId)
+    protected function processPaidOrder($order, $authorizationId)
     {
         if ($order->getBaseTotalDue() <= 0) {
             return false;

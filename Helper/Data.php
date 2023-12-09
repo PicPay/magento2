@@ -326,7 +326,7 @@ class Data extends AbstractHelper
     {
         return $this->urlBuilder->getUrl(
             'picpay/notification/',
-            ["_secure" => $this->isCurrentlySecure(), "isAjax" => 1]
+            ["_secure" => $this->isCurrentlySecure()]
         );
     }
 
@@ -531,15 +531,12 @@ class Data extends AbstractHelper
     /**
      * Get expire date for a order
      *
-     * @param Mage_Sales_Model_Order $order
+     * @param \Magento\Sales\Model\Order $order
      * @return false|string
      */
-    public function getExpiresAt($order)
+    public function getExpiresAt(): string
     {
         $createdAt = date("Y-m-d H:i:s");
-        if ($order instanceof Order) {
-            $createdAt = $order->getCreatedAt();
-        }
         $createdAtTime = \strtotime($createdAt);
 
         $hours = (int) $this->getStoreConfig("hours_to_expires");
@@ -548,7 +545,7 @@ class Data extends AbstractHelper
             $createdAtTime += ($hours * 3600);
         }
 
-        return \date("c", $createdAtTime);
+        return date("c", $createdAtTime);
     }
 
     /**

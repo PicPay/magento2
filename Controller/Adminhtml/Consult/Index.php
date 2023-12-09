@@ -44,7 +44,7 @@ class Index extends \Magento\Backend\App\Action
         /** @var \Magento\Sales\Model\Order $order */
         $order = $this->salesOrderFactory->create()->load($orderId);
 
-        if(
+        if (
             !$order
             || !$order->getId()
             || $order->getPayment()->getMethodInstance()->getCode() != "picpay_standard"
@@ -56,14 +56,15 @@ class Index extends \Magento\Backend\App\Action
         $return = $this->consultRequest($order);
 
 
-        if(!is_array($return) || $return['success'] == 0) {
+        if (!is_array($return) || $return['success'] == 0) {
             $this->messageManager->addErrorMessage(_('Erro to Sync'));
             return $this->_redirect('sales/order/view', ['_current' => true, 'order_id' => $orderId]);
         }
 
         $authorizationId = $order->getPayment()->getAdditionalInformation("authorizationId");
 
-        if(isset($return['return']['authorizationId'])
+        if (
+            isset($return['return']['authorizationId'])
             && $authorizationId != $return['return']['authorizationId']
         ) {
             $authorizationId = $return["return"]["authorizationId"];
@@ -92,7 +93,7 @@ class Index extends \Magento\Backend\App\Action
             array(),
             "GET"
         );
-        if(isset($result['success'])) {
+        if (isset($result['success'])) {
             return $result;
         }
         return false;

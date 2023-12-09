@@ -635,7 +635,7 @@ class Data extends AbstractHelper
             );
         }
 
-        $invoice->setRequestedCaptureCase(Invoice::CAPTURE_ONLINE);
+        $invoice->setRequestedCaptureCase(Invoice::CAPTURE_OFFLINE);
         $invoice->register();
 
         $invoice->getOrder()->setCustomerNoteNotify(false);

@@ -60,7 +60,7 @@
             <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
             <config_path>payment/picpay_standard/specificcountry</config_path>
             <depends>
-                <field id="*/*/allowspecific">1</field>
+                <field id="*/*/*/allowspecific">1</field>
             </depends>
         </field>
 

@@ -26,8 +26,8 @@ class Mode implements \Magento\Framework\Option\ArrayInterface
         $picpayHelper = $this->_paymentHelper;
 
         return [
-            ['value' => $picpayHelper::ONPAGE_MODE, 'label' => 'On Page'],
-            ['value' => $picpayHelper::REDIRECT_MODE, 'label' => 'Redirect']
+            ['value' => $picpayHelper::ONPAGE_MODE, 'label' => __('On Page')],
+            ['value' => $picpayHelper::REDIRECT_MODE, 'label' => __('Redirect')]
         ];
     }
 }

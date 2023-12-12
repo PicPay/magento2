@@ -10,10 +10,12 @@ Picpay,Picpay
 "Item with id ""%1"" does not exist.","Item with id ""%1"" does not exist."
 "Could not save the callback info: %1","Could not save the callback info: %1"
 "Select the taxvat attribute","Select the taxvat attribute"
+"On Page","On Page"
+Redirect,Redirect
 "Are you sure you want to Sync Picpay Transaction?","Are you sure you want to Sync Picpay Transaction?"
 "Sync Picpay Transaction","Sync Picpay Transaction"
 "Not Available","Not Available"
-"Picpay","Picpay"
+"Picpay","PicPay"
 "Payment Link","Payment Link"
 "Authorization Id","Authorization Id"
 "Cancellation Id","Cancellation Id"
@@ -33,11 +35,13 @@ Payload,Payload
 "Place Order","Place Order"
 PicPay,PicPay
 "Credentials and General Settings","Credentials and General Settings"
+"Credentials used for PicPay services, if you don't have the credential, contact us.","Credentials used for PicPay services, if you don't have the credential, contact us."
 Enable,Enable
 Title,Title
 "API PicPay Token","API PicPay Token"
 "API Seller Token","API Seller Token"
 "Hours to expires","Hours to expires"
+"Hours to expires the transaction (numbers only).","Hours to expires the transaction (numbers only)."
 "Status for new orders","Status for new orders"
 "Status given to newly created orders before payment result confirmation via server notifications.","Status given to newly created orders before payment result confirmation via server notifications."
 "Payment from applicable countries","Payment from applicable countries"
@@ -46,6 +50,7 @@ Title,Title
 "Enable status order notification","Enable status order notification"
 "Enable debug logging","Enable debug logging"
 "Checkout and Layout Settings","Checkout and Layout Settings"
+"Configure the checkout behavior.","Configure the checkout behavior."
 "Checkout Mode","Checkout Mode"
 "Qrcode width on ""On Page Mode""","Qrcode width on ""On Page Mode"""
 "Set the size in pixels. Use only numbers.","Set the size in pixels. Use only numbers."
@@ -54,6 +59,7 @@ Title,Title
 "Use Custom Form","Use Custom Form"
 "Enable it if you want to show a message on Checkout's Page","Enable it if you want to show a message on Checkout's Page"
 "Custom Form HTML","Custom Form HTML"
+"Insert the message you want to show on checkout's page, it can be an HTML message","Insert the message you want to show on checkout's page, it can be an HTML message"
 Method,Method
 "Increment ID","Increment ID"
 Created,Created

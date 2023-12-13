@@ -63,3 +63,5 @@ Title,Título
 "Method","Método"
 "Increment ID","ID do Pedido"
 "Created","Criado em"
+"Show QRCode on Success Page","Mostrar QRCode na Página de Sucesso"
+"If your store already shows payment info on success page, disable this config","Se sua loja já mostra informações de pagamento na página de sucesso, desabilite esta configuração"

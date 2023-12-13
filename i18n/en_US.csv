@@ -63,3 +63,5 @@ Title,Title
 Method,Method
 "Increment ID","Increment ID"
 Created,Created
+"Show QRCode on Success Page","Show QRCode on Success Page"
+"If your store already shows payment info on success page, disable this config","If your store already shows payment info on success page, disable this config"

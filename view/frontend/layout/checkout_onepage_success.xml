@@ -5,6 +5,7 @@
             <block class="Picpay\Payment\Block\Success"
                    name="picpay.order.success"
                    template="Picpay_Payment::picpay/success.phtml"
+                   ifconfig="payment/picpay_standard/sho_info_success_page"
                    after="-">
             </block>
         </referenceContainer>

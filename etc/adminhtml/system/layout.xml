@@ -54,5 +54,12 @@
                 <field id="*/*/*/use_custom_form">1</field>
             </depends>
         </field>
+
+        <field id="show_info_success_page" translate="label comment" type="select" sortOrder="1010" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Show QRCode on Success Page</label>
+            <comment>If your store already shows payment info on success page, disable this config</comment>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/picpay_standard/show_info_success_page</config_path>
+        </field>
     </group>
 </include>

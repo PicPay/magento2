@@ -8,6 +8,11 @@
                    ifconfig="payment/picpay_standard/show_info_success_page"
                    after="-">
             </block>
+            <block class="Picpay\Payment\Block\Success"
+                   name="picpay.order.success.script"
+                   template="Picpay_Payment::picpay/success/script.phtml"
+                   after="-">
+            </block>
         </referenceContainer>
     </body>
 </page>

@@ -27,13 +27,6 @@
                 <field id="*/*/*/mode">1</field>
             </depends>
         </field>
-        <field id="onpage_message" translate="label comment" type="textarea" sortOrder="80" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Message to show with the QRCode on success page</label>
-            <config_path>payment/picpay_standard/onpage_message</config_path>
-            <depends>
-                <field id="*/*/*/mode">1</field>
-            </depends>
-        </field>
         <field id="qrcode_info_width" translate="label comment" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>QRCode width on info payments</label>
             <comment>Set the size in pixels. Use only numbers.</comment>
@@ -55,11 +48,19 @@
             </depends>
         </field>
 
-        <field id="show_info_success_page" translate="label comment" type="select" sortOrder="1010" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="show_info_success_page" translate="label comment" type="select" sortOrder="1000" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Show QRCode on Success Page</label>
             <comment>If your store already shows payment info on success page, disable this config</comment>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <config_path>payment/picpay_standard/show_info_success_page</config_path>
+        </field>
+        <field id="onpage_message" translate="label comment" type="textarea" sortOrder="1010" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Message to show with the QRCode on success page</label>
+            <config_path>payment/picpay_standard/onpage_message</config_path>
+            <depends>
+                <field id="*/*/*/mode">1</field>
+                <field id="*/*/*/show_info_success_page">1</field>
+            </depends>
         </field>
     </group>
 </include>

@@ -1,13 +1,13 @@
-<p><?php echo __("Picpay Payment") ?></p>
+<p><?= __("Picpay") ?></p>
 
 <?php if($this->getPaymentUrl()): ?>
     <p>
-        <a href="<?php echo $this->getPaymentUrl(); ?>">
+        <a href="<?php echo $this->getPaymentUrl(); ?>" target="_blank">
             <?php echo $this->getQrcode() ?>
         </a>
     </p>
     <p>
-        <a href="<?php echo $this->getPaymentUrl(); ?>"><?php echo __("Payment Link") ?></a>
+        <a href="<?php echo $this->getPaymentUrl(); ?>" target="_blank"><?php echo __("Payment Link") ?></a>
     </p>
 <?php endif; ?>
 

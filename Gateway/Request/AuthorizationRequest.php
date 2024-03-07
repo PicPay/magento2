@@ -63,31 +63,24 @@ class AuthorizationRequest implements BuilderInterface
         ) {
             throw new \InvalidArgumentException('Payment data object should be provided');
         }
-
-        /** @var PaymentDataObjectInterface $payment */
-        $payment = $buildSubject['payment'];
-        $order   = $payment->getOrder();
-        $address = $order->getShippingAddress();
+        /** @var \Magento\Sales\Model\Order\Payment\Interceptor $payment */
+        $payment = $buildSubject['payment']->getPayment();
+        /** @var \Magento\Sales\Model\Order $order */
+        $order = $payment->getOrder();
 
         $version = $this->picpay->getVersion();
-        $expiresAt = $this->picpay->getExpiresAt($order);
-        $incrementId = $order->getOrderIncrementId();
+        $expiresAt = $this->picpay->getExpiresAt();
+        $incrementId = $order->getRealOrderId();
 
         /** @var \Magento\Quote\Model\Quote $quote */
         $quote = $this->session->getQuote();
-
-        /**
-         * @todo pegar
-         * order id
-         */
-        $orderId = $order->getId();
 
         return [
             'TXN_TYPE'      => 'A',
             'referenceId'   => $incrementId,
             'callbackUrl'   => $this->picpay->getCallbackUrl(),
-            'returnUrl'     => $this->picpay->getReturnUrl($orderId),
-            'value'         => round($order->getGrandTotalAmount(), 2),
+            'returnUrl'     => $this->picpay->getReturnUrl(),
+            'value'         => round((float) $buildSubject['amount'], 2),
             'buyer'         => $this->picpay->getBuyer($order, $quote),
             'plugin'        => "Magento 2". $version,
             'api_url'       => $this->picpay->getApiUrl("/payments"),

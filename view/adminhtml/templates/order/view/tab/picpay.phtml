@@ -1,0 +1,35 @@
+<?php
+/**
+ * @var \Picpay\Payment\Block\Adminhtml\Order\View\Tab\Picpay $block
+ * @var \Magento\Framework\Escaper $escaper
+ */
+?>
+<div id="order_koin_callback_block">
+    <div class="admin__page-section-title">
+        <span class="title"><?= __('Picpay Callbacks') ?></span>
+    </div>
+    <section  class="admin__page-section edit-order-koin-callback-grid">
+        <table class="data-table admin__table-primary table-koin-callback">
+            <thead>
+                <tr>
+                    <th><?= __('ID') ?></th>
+                    <th><?= __('Status') ?></th>
+                    <th><?= __('Payload') ?></th>
+                    <th><?= __('Created At') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+            <?php
+            /** @var \Picpay\Payment\Model\Callback $callback */
+            foreach($block->getCallbackCollection() as $callback): ?>
+                <tr>
+                    <td><?= $callback->getId() ?></td>
+                    <td><?= $callback->getStatus() ?></td>
+                    <td><?= $callback->getPayload() ?></td>
+                    <td><?= $block->formatDate($callback->getCreatedAt(), \IntlDateFormatter::MEDIUM) ?></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </section>
+</div>

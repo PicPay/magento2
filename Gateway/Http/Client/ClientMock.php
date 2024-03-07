@@ -2,12 +2,10 @@
 
 namespace Picpay\Payment\Gateway\Http\Client;
 
-use Magento\Framework\HTTP\ZendClient;
-use Magento\Framework\HTTP\ZendClientFactory;
 use Magento\Payment\Gateway\Http\ClientInterface;
 use Magento\Payment\Gateway\Http\TransferInterface;
 use Magento\Payment\Model\Method\Logger;
-use Picpay\Payment\Helper\Data as Picpay;
+use Picpay\Payment\Helper\Data;
 
 class ClientMock implements ClientInterface
 {
@@ -17,21 +15,20 @@ class ClientMock implements ClientInterface
     private $logger;
 
     /**
-     * @var Picpay
+     * @var Data
      */
-    private $picpay;
+    private $helper;
 
     /**
-     * @param ZendClientFactory $clientFactory
      * @param Logger $logger
-     * @param ConverterInterface | null $converter
+     * @param Data $helper
      */
     public function __construct(
         Logger $logger,
-        Picpay $picpay
+        Data $helper
     ) {
         $this->logger = $logger;
-        $this->picpay = $picpay;
+        $this->helper = $helper;
     }
 
     /**
@@ -45,7 +42,7 @@ class ClientMock implements ClientInterface
         $log = [
             'request'       => $transferObject->getBody(),
             'request_uri'   => $transferObject->getUri(),
-            'token'         => $this->picpay->getToken(),
+            'token'         => $this->helper->getToken(),
             'uri'         => $transferObject->getUri(),
             'body'         => $transferObject->getBody(),
         ];
@@ -53,13 +50,12 @@ class ClientMock implements ClientInterface
         $result = [];
 
         try {
-            $result = $this->picpay->requestApi(
+            $result = $this->helper->requestApi(
                 $transferObject->getUri(),
                 $transferObject->getBody()
             );
-//            $result = ['success' => 1];
             $log['response'] = $result;
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             throw $e;
         } finally {
             $this->logger->debug($log);

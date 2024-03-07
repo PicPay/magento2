@@ -6,74 +6,68 @@ use Magento\Framework\App\CsrfAwareActionInterface;
 use Magento\Framework\App\Request\InvalidRequestException;
 use Magento\Framework\App\RequestInterface;
 use Magento\Framework\Controller\ResultFactory;
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Sales\Model\Order;
 use Magento\TestFramework\Event\Magento;
+use Picpay\Payment\Api\CallbackRepositoryInterface;
+use Picpay\Payment\Api\Data\CallbackInterface;
+use Picpay\Payment\Helper\Data;
+use Picpay\Payment\Model\CallbackFactory;
+use Picpay\Payment\Model\Ui\ConfigProvider;
 
 class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareActionInterface
 {
-    /**
-     * @var \Psr\Log\LoggerInterface
-     */
+    /** @var \Psr\Log\LoggerInterface */
     protected $logger;
 
-    /**
-     * @var \Magento\Sales\Model\OrderFactory
-     */
+    /** @var \Magento\Sales\Model\OrderFactory */
     protected $salesOrderFactory;
 
-    /**
-     * @var \Picpay\Payment\Helper\Data
-     */
+    /** @var Data */
     protected $paymentHelper;
 
-    /**
-     * @var \Magento\Framework\Controller\Result\JsonFactory
-     */
+    /** @var \Magento\Framework\Controller\Result\JsonFactory */
     protected $resultJsonFactory;
+
+    /** @var \Magento\Framework\Serialize\Serializer\Json  */
+    protected $serializer;
+
+    /** @var ManagerInterface */
+    protected $eventManager;
+
+    /** @var CallbackRepositoryInterface  */
+    protected $callbackRepository;
+
+    /** @var CallbackFactory  */
+    protected $callbackFactory;
 
     public function __construct(
         \Magento\Framework\App\Action\Context $context,
         \Psr\Log\LoggerInterface $logger,
         \Magento\Sales\Model\OrderFactory $salesOrderFactory,
-        \Picpay\Payment\Helper\Data $paymentHelper,
-        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory
-    )
-    {
+        Data $paymentHelper,
+        \Magento\Framework\Controller\Result\JsonFactory $resultJsonFactory,
+        \Magento\Framework\Serialize\Serializer\Json $serializer,
+        ManagerInterface $eventManager,
+        CallbackFactory $callbackFactory,
+        CallbackRepositoryInterface $callbackRepository
+    ) {
         $this->logger = $logger;
         $this->salesOrderFactory = $salesOrderFactory;
         $this->paymentHelper = $paymentHelper;
         $this->resultJsonFactory = $resultJsonFactory;
+        $this->serializer = $serializer;
+        $this->eventManager = $eventManager;
+        $this->callbackFactory = $callbackFactory;
+        $this->callbackRepository = $callbackRepository;
         parent::__construct(
             $context
         );
     }
 
-    /**
-     * Retrieves the helper
-     *
-     * @param string Helper alias
-     * @return \Picpay\Payment\Helper\Data
-     */
-    public function getHelper()
+    public function getHelper(): Data
     {
         return $this->paymentHelper;
-    }
-
-    /**
-     * Protected toJson response
-     *
-     * @param array $data Data to be json encoded
-     * @param int $statusCode HTTP response status code
-     * @return \Zend_Controller_Response_Abstract
-     * @throws \Zend_Controller_Exception
-     */
-    protected function _toJson($data = array(), $statusCode = 200)
-    {
-        return $this
-            ->getResponse()
-            ->setHeader('Content-type', 'application/json')
-            ->setBody(\Zend_Json::encode($data))
-            ->setHttpResponseCode($statusCode);
     }
 
     /**
@@ -81,40 +75,42 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      *
      * @param array $data
      * @param int $statusCode
-     * @return \Zend_Controller_Response_Abstract
+     * @return \Magento\Framework\App\ResponseInterface
      */
     public function toJson($data = array(), $statusCode = 200)
     {
-        return $this->_toJson($data, $statusCode);
+        return $this->getResponse()
+            ->setHeader('Content-type', 'application/json')
+            ->setBody($this->serializer->serialize($data))
+            ->setHttpResponseCode($statusCode);
     }
 
     /**
      * Normalize a request params based on content-type and methods
      *
-     * @param \Zend_Controller_Request_Http $request Request with data (raw body, json, form data, etc)
+     * @param \Magento\Framework\App\RequestInterface $request Request with data (raw body, json, form data, etc)
      * @param array $methods Accepted methods to normalize data
-     * @return \Zend_Controller_Request_Http
-     * @throws \Zend_Controller_Request_Exception
-     * @throws \Zend_Json_Exception
+     * @return \Magento\Framework\App\ResponseInterface
+     * @throws \Exception
      */
-    protected function _normalizeParams($request, $methods = array('PUT', 'POST'))
+    protected function normalizeParams($request, $methods = array('PUT', 'POST'))
     {
         if (in_array($request->getMethod(), $methods) && 'application/json' == $request->getHeader('Content-Type')) {
             if (false !== ($body = $request->getContent())) {
-                $this->getHelper()->log($body);
+                $this->getHelper()->log((string) $body);
                 try {
                     $body = str_replace("\t","",$body);
                     $body = str_replace("\r","",$body);
                     $body = str_replace("\n","",$body);
-                    $data = \Zend_Json::decode( $body );
-                }
-                catch (Exception $exception) {
+                    $data = $this->serializer->unserialize( $body );
+                } catch (\Exception $exception) {
                     $this->logger->critical($exception);
-                    throw new \Zend_Json_Exception($exception->getMessage());
+                    throw new \Exception($exception->getMessage());
                 }
                 $request->setParams($data);
             }
         }
+
         return $request;
     }
 
@@ -123,52 +119,67 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      */
     public function execute()
     {
-        $request = $this->_normalizeParams($this->getRequest());
-        $this->logger->debug(print_r($request->getParams(), true));
-
-        $referenceId = $request->get("referenceId");
-        $authorizationId = $request->get("authorizationId");
         $resultPage = $this->resultJsonFactory->create();
-
-        
-        $response = ['success' => false];
-        $resultPage->setData($response);
-
-        if (!$this->getHelper()->isNotificationEnabled()) {
-            return $resultPage->setHttpResponseCode(403);
-        }
-
-        if (!$this->getHelper()->validateAuth($this->getRequest())) {
-            return $resultPage->setHttpResponseCode(401);
-        }
-
-        if (!$referenceId) {
-            return $resultPage->setHttpResponseCode(422);
-        }
-
-        $order = $this->salesOrderFactory->create()->loadByIncrementId($referenceId);
-
-        if (!$order || !$order->getId()) {
-            return $resultPage->setHttpResponseCode(422);
-        }
-
+        $statusCode = 400;
         try {
+            $request = $this->normalizeParams($this->getRequest());
+            $requestParams = json_encode($request->getParams(), true);
+            $this->logger->debug($requestParams);
+
+            $referenceId = $request->get("referenceId");
+            $authorizationId = $request->get("authorizationId");
+
+            $response = ['success' => false];
+            $resultPage->setData($response);
+
+            if (!$this->getHelper()->isNotificationEnabled()) {
+                throw new \Exception('Notifications are disabled', 403);
+            }
+
+            if (!$this->getHelper()->validateAuth($this->getRequest())) {
+                throw new \Exception('Invalid auth', 401);
+            }
+
+            if (!$referenceId) {
+                throw new \Exception('Invalid referenceId', 422);
+            }
+
+            $order = $this->salesOrderFactory->create()->loadByIncrementId($referenceId);
+            if (!$order || !$order->getId()) {
+                throw new \Exception('Order not found', 404);
+            }
+
             $return = $this->consultRequest($order);
             if (isset($return["return"]["status"])) {
-
-        $response = ['success' => true];
-        $resultPage->setData($response);
-
+                $response = ['success' => true];
+                $resultPage->setData($response);
                 $this->getHelper()->updateOrder($order, $return, $authorizationId);
-            } else {
-                return $resultPage->setHttpResponseCode(400);
+                $statusCode = 200;
             }
-        } catch (Exception $e) {
+
+            $this->saveCallback($requestParams, $order->getIncrementId(), $statusCode);
+
+        } catch (\Exception $e) {
             $this->logger->critical($e);
-            $resultPage->setHttpResponseCode(422);
+            $statusCode = $e->getCode() ?: 500;
         }
 
-        return $resultPage;
+        return $resultPage->setHttpResponseCode($statusCode);
+    }
+
+    protected function saveCallback(string $request, string $incrementId, int $statusCode): void
+    {
+        try {
+            /** @var CallbackInterface $callback */
+            $callback = $this->callbackFactory->create();
+            $callback->setMethod(ConfigProvider::CODE);
+            $callback->setIncrementId($incrementId);
+            $callback->setPayload($request);
+            $callback->setStatus($statusCode);
+            $this->callbackRepository->save($callback);
+        } catch (\Exception $e) {
+            $this->logger->error($e);
+        }
     }
 
     /**
@@ -181,10 +192,11 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
     {
         $result = $this->getHelper()->requestApi(
             $this->getHelper()->getApiUrl("/payments/{$order->getIncrementId()}/status"),
-            array(),
+            [],
             "GET"
         );
-        if(isset($result['success'])) {
+
+        if (isset($result['success'])) {
             return $result;
         }
         return false;
@@ -199,11 +211,11 @@ class Index extends \Magento\Framework\App\Action\Action implements CsrfAwareAct
      *
      * @return InvalidRequestException|null
      */
-    public function createCsrfValidationException(RequestInterface $request):InvalidRequestException
+    public function createCsrfValidationException(RequestInterface $request): ?InvalidRequestException
     {
         return null;
     }
-    
+
     /**
      * Perform custom request validation.
      * Return null if default validation is needed.

@@ -1,8 +1,10 @@
 <?php
 
-namespace Picpay\Payment\Block\Plugin\Adminhtml\Order;
+namespace Picpay\Payment\Plugin\Block\Adminhtml\Order;
 
 use \Magento\Backend\Model\UrlInterface;
+use Magento\Sales\Block\Adminhtml\Order\View as MagentoView;
+use Picpay\Payment\Model\Ui\ConfigProvider;
 
 class View
 {
@@ -21,19 +23,17 @@ class View
     }
 
     /**
-     * @param \Magento\Sales\Block\Adminhtml\Order\View $view
+     * @param MagentoView $view
      */
-    public function beforeSetLayout(\Magento\Sales\Block\Adminhtml\Order\View $view)
+    public function beforeSetLayout(MagentoView $view): void
     {
-        $isPicpay = $view->getOrder()->getPayment()->getMethod() == \Picpay\Payment\Model\Ui\ConfigProvider::CODE;
-    
-        if($isPicpay) {
+        if ($view->getOrder()->getPayment()->getMethod() == ConfigProvider::CODE) {
             $message = __('Are you sure you want to Sync Picpay Transaction?');
             $url = $this->urlBuilder->getUrl(
                 'picpay_payment/consult/index',
                 ['order_id' => $view->getOrderId()]
             );
-    
+
             $view->addButton(
                 'picpay_sync',
                 [

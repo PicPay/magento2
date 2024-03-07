@@ -14,11 +14,11 @@ class Taxvat
     ) {
         $this->paymentHelper = $paymentHelper;
     }
-    
+
     /**
      * @return array
      */
-    public function toOptionArray()
+    public function toOptionArray(): array
     {
         /** @var \Picpay\Payment\Helper\Data $picpayHelper */
         $picpayHelper = $this->paymentHelper;

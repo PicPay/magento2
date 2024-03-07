@@ -19,16 +19,15 @@ class Mode implements \Magento\Framework\Option\ArrayInterface
     ) {
         $this->_paymentHelper = $paymentHelper;
     }
-    
+
     public function toOptionArray()
     {
         /** @var \Picpay\Payment\Helper\Data $picpayHelper */
         $picpayHelper = $this->_paymentHelper;
 
         return [
-            ['value' => $picpayHelper::ONPAGE_MODE, 'label' => 'On Page'],
-            ['value' => $picpayHelper::IFRAME_MODE, 'label' => 'Iframe'],
-            ['value' => $picpayHelper::REDIRECT_MODE, 'label' => 'Redirect']
+            ['value' => $picpayHelper::ONPAGE_MODE, 'label' => __('On Page')],
+            ['value' => $picpayHelper::REDIRECT_MODE, 'label' => __('Redirect')]
         ];
     }
 }

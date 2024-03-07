@@ -53,12 +53,11 @@ class PicpayInstructionsConfigProvider implements ConfigProviderInterface
     /**
      * Get instructions text from config
      *
-     * @param string $code
      * @return string
      */
-    protected function getInstructions()
+    protected function getInstructions(): string
     {
-        if($this->paymentHelper->useCustomForm()) {
+        if ($this->paymentHelper->useCustomForm() && $this->paymentHelper->getCustomHtmlForm()) {
             return $this->paymentHelper->getCustomHtmlForm();
         }
 
@@ -68,7 +67,7 @@ class PicpayInstructionsConfigProvider implements ConfigProviderInterface
             . 'style="background-color: rgb(33, 194, 94); border: 0; padding: 10px;" />'
             . '<br/>'
             . '<p>Não conhece o PicPay? '
-            . '<a href="https://www.picpay.com/site" target="_blank">Clique aqui</a>'
+            . '<a href="https://www.picpay.com/" target="_blank">Clique aqui</a>'
             . ' e baixe agora para efetuar seu pagamento.</p>';
     }
 }

@@ -28,9 +28,6 @@ class Redirect extends \Magento\Framework\App\Action\Action
         parent::__construct($context);
     }
 
-    /**
-     * Success action to show inside iframe on return url Picpay
-     */
     public function execute()
     {
         /** @var Order $order */

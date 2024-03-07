@@ -17,7 +17,7 @@ define(
                 return window.checkoutConfig.payment.picpay_instructions;
             },
             afterPlaceOrder: function () {
-                if(window.checkoutConfig.payment.picpay_checkout_mode == "3") {
+                if (window.checkoutConfig.payment.picpay_checkout_mode == "3") {
                     redirectOnSuccessAction.redirectUrl = url.build('picpay/standard/redirect');
                     this.redirectAfterPlaceOrder = true;
                 }

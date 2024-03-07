@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<!--
+/**
+ *
+ * @category    Picpay
+ * @package     Picpay_Payment
+ *
+ */
+-->
+
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="picpay_general" translate="label comment" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+        <label>Credentials and General Settings</label>
+        <comment>Credentials used for PicPay services, if you don't have the credential, contact us.</comment>
+
+        <field id="active" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enable</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/picpay_standard/active</config_path>
+        </field>
+
+        <field id="title" translate="label comment" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Title</label>
+            <config_path>payment/picpay_standard/title</config_path>
+        </field>
+
+        <field id="token" translate="label comment" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>API PicPay Token</label>
+            <config_path>payment/picpay_standard/token</config_path>
+        </field>
+
+        <field id="seller_token" translate="label comment" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>API Seller Token</label>
+            <config_path>payment/picpay_standard/seller_token</config_path>
+        </field>
+
+        <field id="hours_to_expires" translate="label comment" type="text" sortOrder="120" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Hours to expires</label>
+            <comment>Hours to expires the transaction (numbers only).</comment>
+            <validate>validate-number validate-zero-or-greater</validate>
+            <config_path>payment/picpay_standard/hours_to_expires</config_path>
+        </field>
+
+        <field id="order_status" translate="label comment" type="select" sortOrder="200" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Status for new orders</label>
+            <comment>Status given to newly created orders before payment result confirmation via server notifications.</comment>
+            <source_model>Magento\Sales\Model\Config\Source\Order\Status\NewStatus</source_model>
+            <config_path>payment/picpay_standard/order_status</config_path>
+        </field>
+
+        <field id="allowspecific" translate="label comment" type="select" sortOrder="600" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Payment from applicable countries</label>
+            <source_model>Magento\Payment\Model\Config\Source\Allspecificcountries</source_model>
+            <comment>If set to specific, guest customers will not have a billing country and may not be able to order.</comment>
+            <config_path>payment/picpay_standard/allowspecific</config_path>
+        </field>
+
+        <field id="specificcountry" translate="label comment" type="multiselect" sortOrder="610" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Payment from Specific countries</label>
+            <source_model>Magento\Directory\Model\Config\Source\Country</source_model>
+            <config_path>payment/picpay_standard/specificcountry</config_path>
+            <depends>
+                <field id="*/*/*/allowspecific">1</field>
+            </depends>
+        </field>
+
+        <field id="notification" translate="label comment" type="select" sortOrder="1000" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enable status order notification</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/picpay_standard/notification</config_path>
+        </field>
+
+        <field id="debug" translate="label comment" type="select" sortOrder="10000" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Enable debug logging</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <config_path>payment/picpay_standard/debug</config_path>
+        </field>
+    </group>
+</include>

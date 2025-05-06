@@ -14,7 +14,7 @@
 -->
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
     <menu>
-        <add id="Picpay_Payment::menu" title="PicPay" module="Picpay_Payment" sortOrder="1010" parent="Magento_Sales::sales" resource="Picpay_Payment::menu"/>
+        <add id="Picpay_Payment::menu" title="PicPay Wallet" module="Picpay_Payment" sortOrder="1010" parent="Magento_Sales::sales" resource="Picpay_Payment::menu"/>
         <add id="Picpay_Payment::callbacks"
              title="Callbacks"
              module="Picpay_Payment"

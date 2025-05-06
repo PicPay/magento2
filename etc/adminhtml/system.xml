@@ -3,7 +3,7 @@
     <system>
         <section id="payment">
             <group id="picpay" showInDefault="1" showInStore="1" showInWebsite="1" sortOrder="1" translate="label">
-                <label>PicPay</label>
+                <label>PicPay Wallet</label>
                 <include path="Picpay_Payment::system/general.xml"/>
                 <include path="Picpay_Payment::system/layout.xml"/>
             </group>
